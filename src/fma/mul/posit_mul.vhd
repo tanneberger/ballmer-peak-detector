@@ -215,26 +215,20 @@ begin
     s_result_sign <= s_sign_0 xor s_sign_1;
 
     -- Pipeline Stage 0 (After Decode)
-    pipe_0_proc : process(i_clk)
-    begin
-        if rising_edge(i_clk) then
-            if i_enable = '1' then
-                r0_rc_0       <= s_rc_0;
-                r0_rc_1       <= s_rc_1;
-                r0_regime_0   <= s_regime_0;
-                r0_regime_1   <= s_regime_1;
-                r0_exponent_0 <= s_exponent_0;
-                r0_exponent_1 <= s_exponent_1;
+ 
+    r0_rc_0       <= s_rc_0;
+    r0_rc_1       <= s_rc_1;
+    r0_regime_0   <= s_regime_0;
+    r0_regime_1   <= s_regime_1;
+    r0_exponent_0 <= s_exponent_0;
+    r0_exponent_1 <= s_exponent_1;
 
-                r0_mantissa_0 <= s_mantissa_0;
-                r0_mantissa_1 <= s_mantissa_1;
+    r0_mantissa_0 <= s_mantissa_0;
+    r0_mantissa_1 <= s_mantissa_1;
 
-                r0_result_sign <= s_result_sign;
-                r0_is_inf      <= s_result_is_inf;
-                r0_is_zero     <= s_result_is_zero;
-            end if;
-        end if;
-    end process;
+    r0_result_sign <= s_result_sign;
+    r0_is_inf      <= s_result_is_inf;
+    r0_is_zero     <= s_result_is_zero;
 
     -- Add the implicit hidden Bit in front of the Mantissa
     s_hidden_mantissa_0 <= '1' & r0_mantissa_0;
@@ -262,22 +256,16 @@ begin
 
     s_efficient_exponent <= std_logic_vector(signed((0 => s_efficient_exponent_0(C_Bs + G_ES)) & s_efficient_exponent_0) + signed((0 => s_efficient_exponent_1(C_Bs + G_ES)) & s_efficient_exponent_1)); -- + signed(s_msb_mantissa));
 
-    pipe_1_proc : process(i_clk)
-    begin
-        if rising_edge(i_clk) then
-            if i_enable = '1' then
-                r1_product <= s_upper_product;
 
-                r1_truncated_sticky <= s_truncated_sticky;
+    r1_product <= s_upper_product;
 
-                r1_efficient_exponent <= s_efficient_exponent;
+    r1_truncated_sticky <= s_truncated_sticky;
 
-                r1_result_sign <= r0_result_sign;
-                r1_is_inf      <= r0_is_inf;
-                r1_is_zero     <= r0_is_zero;
-            end if;
-        end if;
-    end process;
+    r1_efficient_exponent <= s_efficient_exponent;
+
+    r1_result_sign <= r0_result_sign;
+    r1_is_inf      <= r0_is_inf;
+    r1_is_zero     <= r0_is_zero;
 
     -- Calculate effective exponents by Addition
 

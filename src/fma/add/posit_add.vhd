@@ -252,35 +252,8 @@ begin
     s_operation <= s_sign_0 xnor s_sign_1;
 
     -- aligns mantissa
-    gen_pipe_0 : if G_N > C_GEN_PIPE_0 generate
-        pipe_0_proc : process(i_clk)
-        begin
-            if rising_edge(i_clk) then
-                if (i_enable = '1') then
-                    r0_is_inf  <= s_result_is_inf;
-                    r0_is_zero <= s_result_is_zero;
 
-                    if s_result_is_inf = '0' and s_result_is_zero = '0' then
-                        r0_rc_0            <= s_rc_0;
-                        r0_rc_1            <= s_rc_1;
-                        r0_regime_0        <= s_regime_0;
-                        r0_regime_1        <= s_regime_1;
-                        r0_exponent_0      <= s_exponent_0;
-                        r0_exponent_1      <= s_exponent_1;
-                        r0_mantissa_0      <= s_mantissa_0;
-                        r0_mantissa_1      <= s_mantissa_1;
-                        r0_result_sign     <= s_result_sign;
-                        r0_op0_greater_op1 <= s_op0_greater_op1;
 
-                        r0_operation <= s_operation;
-
-                    end if;
-                end if;
-            end if;
-        end process;
-    end generate;
-
-    gen_no_pipe_0 : if G_N <= C_GEN_PIPE_0 generate
         r0_is_inf  <= s_result_is_inf;
         r0_is_zero <= s_result_is_zero;
 
@@ -296,7 +269,6 @@ begin
         r0_op0_greater_op1 <= s_op0_greater_op1;
 
         r0_operation <= s_operation;
-    end generate;
 
     -- Sort components by larger and smaller operand
     s_larger_rc  <= r0_rc_0 when r0_op0_greater_op1 = '1' else r0_rc_1;
@@ -391,24 +363,15 @@ begin
         );
     
 
-    pipe_1_proc : process(i_clk)
-    begin
-        if rising_edge(i_clk) then
-            if (i_enable = '1') then
-                r1_is_inf  <= r0_is_inf;
-                r1_is_zero <= r0_is_zero;
+        r1_is_inf  <= r0_is_inf;
+        r1_is_zero <= r0_is_zero;
 
-                if r0_is_inf = '0' and r0_is_zero = '0' then
-                    -- r1_signed_larger_hidden_mantissa <= s_signed_larger_hidden_mantissa;
-                    -- r1_signed_aligned_hidden_mantissa <= s_signed_aligned_hidden_mantissa;\
-                    r1_summed_mantissa           <= s_summed_mantissa;
-                    r1_result_sign               <= r0_result_sign;
-                    r1_larger_efficient_exponent <= s_larger_efficient_exponent; 
-                    r1_alignmment_sticky         <= s_alignment_sticky;
-                end if;
-            end if;
-        end if;
-    end process;
+        r1_summed_mantissa           <= s_summed_mantissa;
+        r1_result_sign               <= r0_result_sign;
+        r1_larger_efficient_exponent <= s_larger_efficient_exponent; 
+        r1_alignmment_sticky         <= s_alignment_sticky;
+
+
     -- check overflow of mantissa (highest bit) and hidden bit (both can be cut)
     -- if overflow -> add one to exponent
     s_mantissa_overflow <= r1_summed_mantissa(C_INTERNAL_MANTISSA_WIDTH);
