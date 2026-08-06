@@ -10,15 +10,18 @@ entity adder is
     );
     port(
         -- input operand 1
+        i_sign_op1    : in  std_logic;
         i_mant_op1   : in  std_logic_vector((2 * (G_N - G_ES - 3 + 1)) - 1 downto 0);
         i_eff_exp_op1 : in  std_logic_vector(G_Bs + G_ES downto 0);
 
         -- input operand 2
+        i_sign_op2    : in  std_logic;
         i_mant_op2   : in  std_logic_vector((2 * (G_N - G_ES - 3 + 1)) - 1 downto 0);
         i_eff_exp_op2 : in  std_logic_vector(G_Bs + G_ES downto 0);
 
         -- outputs
-        o_sticky             : out std_logic;
+        o_sign_result             : out std_logic;
+        o_sticky_result             : out std_logic;
         o_mant_result    : out std_logic_vector((2 * (G_N - G_ES - 3 + 1)) - 1 downto 0);
         o_eff_exp_add_result : out std_logic_vector(G_Bs + G_ES downto 0)
     );

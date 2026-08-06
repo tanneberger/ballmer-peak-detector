@@ -13,11 +13,14 @@ entity decoder is
         i_op_mul_b             : in  std_logic_vector(G_N - 1 downto 0);
         i_op_add_c             : in  std_logic_vector(G_N - 1 downto 0);
         -- outputs
+        o_sign_a                : out std_logic;
         o_efficient_exponent_a : out std_logic_vector(G_Bs + G_ES downto 0);
-        o_efficient_exponent_b : out std_logic_vector(G_Bs + G_ES downto 0);
-        o_efficient_exponent_c : out std_logic_vector(G_Bs + G_ES downto 0);
         o_hidden_fract_a       : out std_logic_vector(2 * (G_N - G_ES - 3 + 1) - 1 downto 0);
+        o_sign_b : out std_logic;
+        o_efficient_exponent_b : out std_logic_vector(G_Bs + G_ES downto 0);
         o_hidden_fract_b       : out std_logic_vector(2 * (G_N - G_ES - 3 + 1) - 1 downto 0);
+        o_sign_c : out std_logic;
+        o_efficient_exponent_c : out std_logic_vector(G_Bs + G_ES downto 0);
         o_hidden_fract_c       : out std_logic_vector(2 * (G_N - G_ES - 3 + 1) - 1 downto 0)
     );
 end entity;

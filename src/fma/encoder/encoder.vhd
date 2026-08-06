@@ -19,9 +19,10 @@ entity encoder is
         --i_clk       : in  std_logic;
         --i_enable    : in  std_logic;
 
-        o_sticky                 : in std_logic;
-        i_mant_add_result_op2    : in  std_logic_vector((2 * (G_N - G_ES - 3 + 1)) - 1 downto 0);
-        i_eff_exp_add_result_op2 : in  std_logic_vector(G_Bs + G_ES downto 0);
+        i_sticky_op1  : in std_logic;
+        i_sign_op1    : in std_logic;
+        i_mant_op1    : in  std_logic_vector((2 * (G_N - G_ES - 3 + 1)) - 1 downto 0);
+        i_eff_exp_op1 : in  std_logic_vector(G_Bs + G_ES downto 0);
 
         o_result              : out std_logic_vector(7 downto 0) -- TODO:
     );
@@ -36,6 +37,9 @@ architecture Behavioral of encoder is
     constant C_TRUNCATED_MANTISSA_WIDTH : integer := C_MAX_MANTISSA_WIDTH + 4;
 
     --constant C_INTERNAL_MANTISSA_WIDTH : integer := C_MAX_MANTISSA_WIDTH + 3; -- mantissa + hidden, guard, rounding (and sticky) bit
+
+    signal s_is_inf         : std_logic;
+    signal s_is_zero        : std_logic;
 
     -- Encode Posit
     -- could be one bit smaller? no more sign
@@ -73,7 +77,8 @@ architecture Behavioral of encoder is
     signal   s_is_underflow : std_logic;
 
 begin
-    s_adjusted_efficient_exponent <= i_efficient_exponent;
+
+    s_adjusted_efficient_exponent <= i_eff_exp_op1;
 
     s_is_overflow  <= '1' when signed(s_adjusted_efficient_exponent) >= C_MAX_EXP else '0';
     s_is_underflow <= '1' when signed(s_adjusted_efficient_exponent) <= -C_MAX_EXP else '0';
@@ -87,7 +92,7 @@ begin
     s_exponent <= s_adjusted_efficient_exponent(G_ES - 1 downto 0) when s_adjusted_efficient_exponent(C_Bs + G_ES) = '1' and or_reduce(s_abs_efficient_exponent(G_ES - 1 downto 0)) = '1' else s_abs_efficient_exponent(G_ES - 1 downto 0);
 
     -- Concatinate Exponent and Mantissa
-    s_combined_exp_mantissa <= s_exponent & i_normalized_mantissa;
+    s_combined_exp_mantissa <= s_exponent & i_mant_op1; --TODO: fix me
     -- Exponent and Mantissa Packing
 
     -- Create regime bit
