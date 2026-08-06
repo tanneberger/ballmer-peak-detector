@@ -100,6 +100,21 @@ begin
             mant   => s_mantissa_2
         );
 
+    inst_encoder_0 : entity work.posit_encode
+        generic map(
+            G_N  => G_N,
+            G_ES => G_ES
+        )
+        port map(
+            i_sign               => s_sign_0,
+            i_is_inf             => std_logic(0), --TODO
+            i_is_zero            => std_logic(0), --TODO
+            i_sticky             => std_logic(0), --TODO
+            i_normalized_mantissa => s_normalized_operand_0,
+            i_efficient_exponent  => s_efficient_exponent_0,
+            o_result              => o_res
+        );
+
     s_hidden_mantissa_0 <= '1' & s_mantissa_0;
     s_hidden_mantissa_1 <= '1' & s_mantissa_1;
     

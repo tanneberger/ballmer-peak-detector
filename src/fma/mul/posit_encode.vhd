@@ -11,8 +11,8 @@ use work.utility_pkg.all;
 
 entity posit_encode is
     generic(
-        G_N  : integer := 32;
-        G_ES : integer := 1
+        G_N  : integer := 8;
+        G_ES : integer := 2
     );
     port(
         --i_clk       : in  std_logic;
@@ -32,6 +32,7 @@ end posit_encode;
 architecture Behavioral of posit_encode is
 
     constant C_Bs                       : integer := clog2(G_N);
+    -- max number of regime bits 
     constant C_MAX_MANTISSA_WIDTH       : integer := G_N - G_ES - 3; -- 2 bit regime + 1 bit sign
     -- C_MAX_MANTISSA_WIDTH + Hidden bit + Guard bit + one extra for adjusting/nromalization
     constant C_TRUNCATED_MANTISSA_WIDTH : integer := C_MAX_MANTISSA_WIDTH + 4;
