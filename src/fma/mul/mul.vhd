@@ -27,15 +27,17 @@ end entity multiplier;
 architecture Behavioral of multiplier is
     -- constant
     constant C_MAX_MANTISSA_WIDTH : integer := G_N - G_ES - 3; -- 2 bit regime + 1 bit sign
-    constant C_PRODUCT_WIDHT      : integer := 3 * (C_MAX_MANTISSA_WIDTH + 1);
+    constant C_PRODUCT_WIDHT      : integer := 2 * (C_MAX_MANTISSA_WIDTH + 1);
     -- signals
     signal   s_product            : std_logic_vector(C_PRODUCT_WIDHT - 1 downto 0);
-    signal   s_efficient_exponent : std_logic_vector(G_Bs + G_ES + 1 downto 0);
+    signal   s_efficient_exponent : std_logic_vector(G_Bs + G_ES  downto 0);
 
 begin
-    --s_product            <= std_logic_vector(unsigned(i_hidden_fract_a) * unsigned(i_hidden_fract_b));
-    -- s_efficient_exponent <= std_logic_vector(signed((0 => i_efficient_exponent_a(G_Bs + G_ES)) & i_efficient_exponent_a) + signed((0 => i_efficient_exponent_b(G_Bs + G_ES)) & i_efficient_exponent_b)); -- + signed(s_msb_mantissa));
+    s_product            <= std_logic_vector(unsigned(i_mant_op1(G_N - G_ES - 3 downto 0)) * unsigned(i_mant_op2(G_N - G_ES - 3 downto 0)));
+    s_efficient_exponent <= std_logic_vector(signed(i_eff_exp_op1) + signed((i_eff_exp_op2))); -- + signed(s_msb_mantissa));
 
-    -- o_eff_exp_result <= s_efficient_exponent;
-    -- o_mant_product <= s_product;
+
+    o_sign_result <= i_sign_op1 xor i_sign_op2;
+    o_eff_exp_result <= s_efficient_exponent;
+    o_mant_result <= s_product;
 end architecture Behavioral;

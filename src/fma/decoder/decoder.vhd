@@ -13,13 +13,13 @@ entity decoder is
         i_op_mul_b             : in  std_logic_vector(G_N - 1 downto 0);
         i_op_add_c             : in  std_logic_vector(G_N - 1 downto 0);
         -- outputs
-        o_sign_a                : out std_logic;
+        o_sign_a               : out std_logic;
         o_efficient_exponent_a : out std_logic_vector(G_Bs + G_ES downto 0);
         o_hidden_fract_a       : out std_logic_vector(2 * (G_N - G_ES - 3 + 1) - 1 downto 0);
-        o_sign_b : out std_logic;
+        o_sign_b               : out std_logic;
         o_efficient_exponent_b : out std_logic_vector(G_Bs + G_ES downto 0);
         o_hidden_fract_b       : out std_logic_vector(2 * (G_N - G_ES - 3 + 1) - 1 downto 0);
-        o_sign_c : out std_logic;
+        o_sign_c               : out std_logic;
         o_efficient_exponent_c : out std_logic_vector(G_Bs + G_ES downto 0);
         o_hidden_fract_c       : out std_logic_vector(2 * (G_N - G_ES - 3 + 1) - 1 downto 0)
     );
@@ -27,12 +27,12 @@ end entity;
 
 architecture Behavioral of decoder is
     -- constant
-    constant C_MAX_MANTISSA_WIDTH : integer := G_N - G_ES - 3;
+    constant C_MAX_MANTISSA_WIDTH         : integer := G_N - G_ES - 3;
     -- signals
-    signal s_sign_0, s_sign_1, s_sign_2 : std_logic;
-    signal s_normalized_operand_0       : std_logic_vector(G_N - 2 downto 0);
-    signal s_normalized_operand_1       : std_logic_vector(G_N - 2 downto 0);
-    signal s_normalized_operand_2       : std_logic_vector(G_N - 2 downto 0);
+    signal   s_sign_0, s_sign_1, s_sign_2 : std_logic;
+    signal   s_normalized_operand_0       : std_logic_vector(G_N - 2 downto 0);
+    signal   s_normalized_operand_1       : std_logic_vector(G_N - 2 downto 0);
+    signal   s_normalized_operand_2       : std_logic_vector(G_N - 2 downto 0);
 
     signal s_rc_0, s_rc_1, s_rc_2                   : std_logic;
     signal s_regime_0, s_regime_1, s_regime_2       : std_logic_vector(G_Bs - 1 downto 0);
@@ -103,10 +103,16 @@ begin
 
     o_efficient_exponent_a <= s_signed_regime_0 & s_exponent_0;
     o_efficient_exponent_b <= s_signed_regime_1 & s_exponent_1;
-    o_efficient_exponent_c <= s_signed_regime_1 & s_exponent_1;
+    o_efficient_exponent_c <= s_signed_regime_2 & s_exponent_2;
 
-    o_hidden_fract_a <= '1' & s_mantissa_0;
-    o_hidden_fract_b <= '1' & s_mantissa_1;
-    o_hidden_fract_c <= '1' & s_mantissa_2;
+    o_sign_a <= s_sign_0;
+    o_sign_b <= s_sign_1;
+    o_sign_c <= s_sign_2;
+
+    -- TODO achtung portsize ist immer für einheit im toplevel doppelt do gross, hier also die hälfte nehmen
+
+    o_hidden_fract_a <= ((o_hidden_fract_a'high downto G_N - G_ES - 2) => '0', (G_N - G_ES - 3 downto 0) => '1' & s_mantissa_0);
+    o_hidden_fract_b <= ((o_hidden_fract_b'high downto G_N - G_ES - 2) => '0', (G_N - G_ES - 3 downto 0) => '1' & s_mantissa_1);
+    o_hidden_fract_c <= ((o_hidden_fract_b'high downto G_N - G_ES - 2) => '0', (G_N - G_ES - 3 downto 0) => '1' & s_mantissa_2);
 
 end architecture Behavioral;
