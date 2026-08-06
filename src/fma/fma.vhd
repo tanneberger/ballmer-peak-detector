@@ -23,6 +23,7 @@ end entity fma;
 architecture RTL of fma is
     constant C_Bs : integer := integer(clog2(G_N)); -- bitwidth for maximal decoded !! regime of G_N-1 bits TODO sollte hier nich ceil sien
 
+    signal s_is_nar : std_logic;
     signal s_sign_a, s_sign_b, s_sign_c, s_sign_t,s_sign_o                                                                           : std_logic;
     signal s_efficient_exponent_a, s_efficient_exponent_b, s_efficient_exponent_c, s_efficient_exponent_t, s_efficient_exponent_o : std_logic_vector(C_Bs + G_ES downto 0);
     signal s_hidden_fract_a, s_hidden_fract_b, s_hidden_fract_c, s_hidden_fract_t                                                 : std_logic_vector(2 * (G_N - G_ES - 3 + 1) - 1 downto 0);
@@ -41,6 +42,7 @@ begin
             i_op_mul_b             => i_opb,
             i_op_add_c             => i_opc,
             o_sign_a               => s_sign_a,
+            o_is_nar => s_is_nar,
             o_efficient_exponent_a => s_efficient_exponent_a,
             o_hidden_fract_a       => s_hidden_fract_a,
             o_sign_b               => s_sign_b,
@@ -95,6 +97,7 @@ begin
             G_Bs => C_Bs
         )
         port map(
+            i_is_nar => s_is_nar,
             i_sticky_op1  => s_sticky_bit_o,
             i_sign_op1    => s_sign_o,
             i_mant_op1    => s_hidden_fract_o,

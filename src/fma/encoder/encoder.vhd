@@ -18,7 +18,7 @@ entity encoder is
     port(
         --i_clk       : in  std_logic;
         --i_enable    : in  std_logic;
-
+        i_is_nar : in std_logic;
         i_sticky_op1  : in std_logic;
         i_sign_op1    : in std_logic;
         i_mant_op1    : in  std_logic_vector((2 * (G_N - G_ES - 3 + 1)) + 2 downto 0);
@@ -39,7 +39,6 @@ architecture Behavioral of encoder is
     --constant C_INTERNAL_MANTISSA_WIDTH : integer := C_MAX_MANTISSA_WIDTH + 3; -- mantissa + hidden, guard, rounding (and sticky) bit
 
     signal s_is_inf         : std_logic;
-    signal s_is_zero        : std_logic;
 
     -- Encode Posit
     -- could be one bit smaller? no more sign
@@ -169,6 +168,6 @@ begin
     s_negated <= std_logic_vector(unsigned(not s_rounded) + 1) when i_sign_op1 = '1' else s_rounded;
     
     -- Apply Special Result Values
-    o_result <= s_is_inf & (G_N - 2 downto 0 => '0') when (s_is_inf = '1' or s_is_zero = '1') else i_sign_op1 & s_negated;
+    o_result <= i_is_nar & (G_N - 2 downto 0 => '0') when (i_is_nar = '1') else i_sign_op1 & s_negated;
 
 end Behavioral;

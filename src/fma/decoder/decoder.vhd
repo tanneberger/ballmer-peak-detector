@@ -1,6 +1,10 @@
 library ieee;
+library work;
+
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+
+use work.utility_pkg.all;
 
 entity decoder is
     generic(
@@ -14,6 +18,8 @@ entity decoder is
         i_op_add_c             : in  std_logic_vector(G_N - 1 downto 0);
         -- outputs
         o_sign_a               : out std_logic;
+        o_is_nar               : out std_logic;
+        o_is_zero : out std_logic;
         o_efficient_exponent_a : out std_logic_vector(G_Bs + G_ES downto 0);
         o_hidden_fract_a       : out std_logic_vector(2 * (G_N - G_ES - 3 + 1) - 1 downto 0);
         o_sign_b               : out std_logic;
@@ -50,6 +56,25 @@ begin
     s_sign_0 <= i_op_mul_a(G_N - 1);
     s_sign_1 <= i_op_mul_b(G_N - 1);
     s_sign_2 <= i_op_add_c(G_N - 1);
+
+    special_check : process(i_op_mul_a, i_op_mul_b, i_op_add_c, s_sign_0, s_sign_1)
+        variable v_all_zeros_0 : std_logic;
+        variable v_all_zeros_1 : std_logic;
+        variable v_all_zeros_2 : std_logic;
+
+        variable is_nar_0, is_nar_1, is_nar_2 : STD_LOGIC;
+    begin
+        v_all_zeros_0 := or_reduce(i_op_mul_a(G_N - 2 downto 0));
+        v_all_zeros_1 := or_reduce(i_op_mul_b(G_N - 2 downto 0));
+        v_all_zeros_2 := or_reduce(i_op_add_c(G_N - 2 downto 0));
+
+        is_nar_0 := s_sign_0 and (not v_all_zeros_0);
+        is_nar_1 := s_sign_1 and (not v_all_zeros_1);
+        is_nar_2 := s_sign_1 and (not v_all_zeros_2);
+
+        o_is_nar <= is_nar_0 or is_nar_1 or is_nar_2;
+        
+    end process;
 
     s_normalized_operand_0 <= std_logic_vector(unsigned(not i_op_mul_a(G_N - 2 downto 0)) + 1) when s_sign_0 = '1' else i_op_mul_a(G_N - 2 downto 0);
     s_normalized_operand_1 <= std_logic_vector(unsigned(not i_op_mul_b(G_N - 2 downto 0)) + 1) when s_sign_1 = '1' else i_op_mul_b(G_N - 2 downto 0);
@@ -111,8 +136,8 @@ begin
 
     -- TODO achtung portsize ist immer für einheit im toplevel doppelt do gross, hier also die hälfte nehmen
 
-    o_hidden_fract_a  <=  std_logic_vector(resize(unsigned('1' & s_mantissa_0), o_hidden_fract_a'length));
-    o_hidden_fract_c  <=  std_logic_vector(resize(unsigned('1' & s_mantissa_1), o_hidden_fract_b'length));
-    o_hidden_fract_c  <=  std_logic_vector(resize(unsigned('1' & s_mantissa_2), o_hidden_fract_c'length));
+    o_hidden_fract_a <= std_logic_vector(resize(unsigned('1' & s_mantissa_0), o_hidden_fract_a'length));
+    o_hidden_fract_b <= std_logic_vector(resize(unsigned('1' & s_mantissa_1), o_hidden_fract_b'length));
+    o_hidden_fract_c <= std_logic_vector(resize(unsigned('1' & s_mantissa_2), o_hidden_fract_c'length));
 
 end architecture Behavioral;
