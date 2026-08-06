@@ -23,7 +23,8 @@ architecture RTL of fma is
 
     signal s_sign_a, s_sign_b, s_sign_c, s_sign_t, s_sign_o                                                                       : std_logic;
     signal s_efficient_exponent_a, s_efficient_exponent_b, s_efficient_exponent_c, s_efficient_exponent_t, s_efficient_exponent_o : std_logic_vector(C_Bs + G_ES downto 0);
-    signal s_hidden_fract_a, s_hidden_fract_b, s_hidden_fract_c, s_hidden_fract_t, s_hidden_fract_o                               : std_logic_vector(2 * (G_N - G_ES - 3 + 1) - 1 downto 0);
+    signal s_hidden_fract_a, s_hidden_fract_b, s_hidden_fract_c, s_hidden_fract_t                               : std_logic_vector(2 * (G_N - G_ES - 3 + 1) - 1 downto 0);
+    signal s_hidden_fract_o : std_logic_vector(2 * (G_N - G_ES - 3 + 1) +2 downto 0);
     signal s_sticky_bit_o                                                                                                         : std_logic;
 
 begin
