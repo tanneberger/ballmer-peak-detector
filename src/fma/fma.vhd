@@ -102,6 +102,7 @@ begin
 
     s_hidden_mantissa_0 <= '1' & s_mantissa_0;
     s_hidden_mantissa_1 <= '1' & s_mantissa_1;
+    
 
     s_product <= std_logic_vector(unsigned(s_hidden_mantissa_0) * unsigned(s_hidden_mantissa_1));
 
@@ -113,5 +114,8 @@ begin
     s_efficient_exponent_1 <= s_signed_regime_1 & s_exponent_1;
 
     s_efficient_exponent <= std_logic_vector(signed((0 => s_efficient_exponent_0(C_Bs + G_ES)) & s_efficient_exponent_0) + signed((0 => s_efficient_exponent_1(C_Bs + G_ES)) & s_efficient_exponent_1)); -- + signed(s_msb_mantissa));
+
+    -------------------------------------- Adder stuff
+    
 
 end architecture RTL;
