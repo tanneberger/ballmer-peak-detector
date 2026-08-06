@@ -24,13 +24,13 @@ entity encoder is
         i_mant_op1    : in  std_logic_vector((2 * (G_N - G_ES - 3 + 1)) + 2 downto 0);
         i_eff_exp_op1 : in  std_logic_vector(G_Bs + G_ES downto 0);
 
-        o_result              : out std_logic_vector(7 downto 0) -- TODO:
+        o_result              : out std_logic_vector(7 downto 0)
     );
 end encoder;
 
 architecture Behavioral of encoder is
 
-    constant C_Bs                       : integer := clog2(G_N);
+    -- constant G_Bs                       : integer := clog2(G_N);
     -- max number of regime bits 
     constant C_MAX_MANTISSA_WIDTH       : integer := G_N - G_ES - 3; -- 2 bit regime + 1 bit sign
     -- C_MAX_MANTISSA_WIDTH + Hidden bit + Guard bit + one extra for adjusting/nromalization
@@ -38,14 +38,14 @@ architecture Behavioral of encoder is
 
     --constant C_INTERNAL_MANTISSA_WIDTH : integer := C_MAX_MANTISSA_WIDTH + 3; -- mantissa + hidden, guard, rounding (and sticky) bit
 
-    signal s_is_inf         : std_logic;
-
+    signal s_mantissa_length_correct : std_logic_vector(G_N - G_ES - 2 downto 0);
+    signal s_sticky_default : std_logic;
     -- Encode Posit
     -- could be one bit smaller? no more sign
-    -- constant C_EFFICIENT_EXPONENT_WIDHT    : integer := C_Bs + G_ES + 1;
-    signal s_adjusted_efficient_exponent : std_logic_vector(C_Bs + G_ES + 1 downto 0);
+    -- constant C_EFFICIENT_EXPONENT_WIDHT    : integer := G_Bs + G_ES + 1;
+    signal s_adjusted_efficient_exponent : std_logic_vector(G_Bs + G_ES  downto 0);
 
-    signal s_abs_efficient_exponent : std_logic_vector(C_Bs + G_ES downto 0); -- abs reduces on bit msb
+    signal s_abs_efficient_exponent : std_logic_vector(G_Bs + G_ES downto 0); -- abs reduces on bit msb
 
     signal s_exponent : std_logic_vector(G_ES - 1 downto 0);
 
@@ -77,6 +77,9 @@ architecture Behavioral of encoder is
 
 begin
 
+    s_mantissa_length_correct <= i_mant_op1(i_mant_op1'high downto i_mant_op1'high-(G_N-G_ES-2));
+    s_sticky_default  <= or_reduce(i_mant_op1((G_N-G_ES-2)-1 downto 0));
+
     s_adjusted_efficient_exponent <= i_eff_exp_op1;
 
     s_is_overflow  <= '1' when signed(s_adjusted_efficient_exponent) >= C_MAX_EXP else '0';
@@ -85,28 +88,28 @@ begin
     -- Result Exponent and Regime Computation
 
     -- Calculate absolute value of efficient exponent to get regime length
-    s_abs_efficient_exponent <= std_logic_vector(unsigned(not s_adjusted_efficient_exponent(C_Bs + G_ES downto 0)) + 1) when s_adjusted_efficient_exponent(C_Bs + G_ES + 1) = '1' else s_adjusted_efficient_exponent(C_Bs + G_ES downto 0);
+    s_abs_efficient_exponent <= std_logic_vector(unsigned(not s_adjusted_efficient_exponent(G_Bs + G_ES downto 0)) + 1) when s_adjusted_efficient_exponent(G_Bs + G_ES + 1) = '1' else s_adjusted_efficient_exponent(G_Bs + G_ES downto 0);
 
     -- Extract exponent bits
-    s_exponent <= s_adjusted_efficient_exponent(G_ES - 1 downto 0) when s_adjusted_efficient_exponent(C_Bs + G_ES) = '1' and or_reduce(s_abs_efficient_exponent(G_ES - 1 downto 0)) = '1' else s_abs_efficient_exponent(G_ES - 1 downto 0);
+    s_exponent <= s_adjusted_efficient_exponent(G_ES - 1 downto 0) when s_adjusted_efficient_exponent(G_Bs + G_ES) = '1' and or_reduce(s_abs_efficient_exponent(G_ES - 1 downto 0)) = '1' else s_abs_efficient_exponent(G_ES - 1 downto 0);
 
     -- Concatinate Exponent and Mantissa
     s_combined_exp_mantissa <= s_exponent & i_mant_op1; --TODO: fix me
     -- Exponent and Mantissa Packing
 
     -- Create regime bit
-    s_regime_bit <= not s_adjusted_efficient_exponent(C_Bs + G_ES + 1);
+    s_regime_bit <= not s_adjusted_efficient_exponent(G_Bs + G_ES + 1);
 
     -- Combine Components
-    s_intermediate_tmp <= (0 => s_adjusted_efficient_exponent(C_Bs + G_ES + 1)) & s_combined_exp_mantissa;
+    s_intermediate_tmp <= (0 => s_adjusted_efficient_exponent(G_Bs + G_ES + 1)) & s_combined_exp_mantissa;
     -- Shift amount
     --s_drs <= "0" & s_regime_length;
     process(s_adjusted_efficient_exponent)
     begin
-        if signed(s_adjusted_efficient_exponent(C_Bs + G_ES + 1 downto G_ES)) >= 0 then
-            s_drs <= std_logic_vector(resize(unsigned(s_adjusted_efficient_exponent(C_Bs + G_ES + 1 downto G_ES)), s_drs'length));
+        if signed(s_adjusted_efficient_exponent(G_Bs + G_ES + 1 downto G_ES)) >= 0 then
+            s_drs <= std_logic_vector(resize(unsigned(s_adjusted_efficient_exponent(G_Bs + G_ES + 1 downto G_ES)), s_drs'length));
         else
-            s_drs <= std_logic_vector(resize(unsigned((not s_adjusted_efficient_exponent(C_Bs + G_ES + 1 downto G_ES))), s_drs'length));
+            s_drs <= std_logic_vector(resize(unsigned((not s_adjusted_efficient_exponent(G_Bs + G_ES + 1 downto G_ES))), s_drs'length));
         end if;
     end process;
 
@@ -125,7 +128,7 @@ begin
         );
 
     -- Calculate Bits for rounding
-    s_sticky_bit <= s_sticky_shifted(0) or i_sticky_op1 or s_shift_tmp;
+    s_sticky_bit <= s_sticky_shifted(0) or i_sticky_op1 or s_shift_tmp or s_sticky_default;
     s_guard_bit  <= s_sticky_shifted(1);
     s_lsb_bit    <= s_sticky_shifted(2);
 
