@@ -34,9 +34,10 @@ architecture Behavioral of adder is
 
     signal s_larger_eff_exp, s_smaller_eff_exp : std_logic_vector(G_Bs + G_ES downto 0);
     signal s_larger_mant, s_smaller_mant       : std_logic_vector(i_mant_op1'range);
+    signal s_shift_target_mant : std_logic_vector(s_smaller_mant'length +1 downto 0);
     signal s_efficient_exponent_difference     : std_logic_vector(G_Bs + G_ES downto 0);
     signal s_shift_out_of_range                : std_logic;
-    signal s_saturated_shift_count             : std_logic_vector(G_Bs - 1 downto 0);
+    signal s_saturated_shift_count             : std_logic_vector(G_Bs downto 0);
 
     signal s_aligned_mantissa_padded : std_logic_vector(C_INTERNAL_MANTISSA_WIDTH + 2 downto 0);
     signal s_aligned_mantissa : std_logic_vector(C_INTERNAL_MANTISSA_WIDTH + 2 -1 downto 0);
@@ -62,14 +63,15 @@ begin
     s_efficient_exponent_difference <= std_logic_vector(signed(s_larger_eff_exp) - signed(s_smaller_eff_exp));
     s_shift_out_of_range            <= '1' when unsigned(s_efficient_exponent_difference) >= C_INTERNAL_MANTISSA_WIDTH else '0';
 
-    s_saturated_shift_count <= s_efficient_exponent_difference(G_Bs - 1 downto 0) when s_shift_out_of_range = '0' else (others => '1'); -- Shift all bits out
+    s_saturated_shift_count <= s_efficient_exponent_difference(G_Bs downto 0) when s_shift_out_of_range = '0' else (others => '1'); -- Shift all bits out
+    s_shift_target_mant  <= s_smaller_mant & (1 downto 0 => '0');
 
     inst_align_sticky_shift : entity work.sticky_shift_det
         generic map(
             C_DATA_WIDTH => C_INTERNAL_MANTISSA_WIDTH + 2
         )
         port map(
-            i_number      => s_smaller_mant & (1 downto 0 => '0'),
+            i_number      => s_shift_target_mant,
             i_shift_bit   => '0',
             i_shift_count => s_saturated_shift_count, --s_efficient_exponent_difference(C_Bs-1 downto 0),
             o_result      => s_aligned_mantissa_padded

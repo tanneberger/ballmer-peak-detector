@@ -111,8 +111,8 @@ begin
 
     -- TODO achtung portsize ist immer für einheit im toplevel doppelt do gross, hier also die hälfte nehmen
 
-    o_hidden_fract_a <= ((o_hidden_fract_a'high downto G_N - G_ES - 2) => '0', (G_N - G_ES - 3 downto 0) => '1' & s_mantissa_0);
-    o_hidden_fract_b <= ((o_hidden_fract_b'high downto G_N - G_ES - 2) => '0', (G_N - G_ES - 3 downto 0) => '1' & s_mantissa_1);
-    o_hidden_fract_c <= ((o_hidden_fract_b'high downto G_N - G_ES - 2) => '0', (G_N - G_ES - 3 downto 0) => '1' & s_mantissa_2);
+    o_hidden_fract_a  <=  std_logic_vector(resize(unsigned('1' & s_mantissa_0), o_hidden_fract_a'length));
+    o_hidden_fract_c  <=  std_logic_vector(resize(unsigned('1' & s_mantissa_1), o_hidden_fract_b'length));
+    o_hidden_fract_c  <=  std_logic_vector(resize(unsigned('1' & s_mantissa_2), o_hidden_fract_c'length));
 
 end architecture Behavioral;

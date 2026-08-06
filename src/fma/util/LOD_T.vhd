@@ -1,22 +1,26 @@
 library ieee;
+library work;
+
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.math_real.all;
 
 use work.utility_pkg.all;
 
 entity LOD_T is
 	generic(
-		G_DATA_WIDTH : integer := 8
+		G_DATA_WIDTH : integer := 62	--posit width without sign
 	);
 	port(
-		i_x   : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0);
+		i_x   : in  std_logic_vector(G_DATA_WIDTH - 1 downto 0); -- input 
 		o_K   : out std_logic_vector(integer(clog2(G_DATA_WIDTH)) - 1 downto 0);
-		o_vld : out std_logic
+		o_vld : out std_logic           -- valid bit
 	);
 end entity;
 
 architecture behav of LOD_T is
-
+	constant C_NEXT_POW2 : integer := 2 ** integer(clog2(G_DATA_WIDTH));
+	constant C_IS_POW2   : boolean := (C_NEXT_POW2 = G_DATA_WIDTH);	
 	signal s_K   : std_logic_vector(integer(clog2(G_DATA_WIDTH)) - 1 downto 0);
 	signal s_vld : std_logic;
 
@@ -40,7 +44,8 @@ begin
 		s_K   <= (0 => ((not i_x(1)) and i_x(0)));
 	end generate recursive_gen_width_2;
 
-	recursive_gen_width_odd : if is_power_of_two(G_DATA_WIDTH) = False generate
+	-- round up to nearest power of two
+	recursive_gen_width_odd : if C_IS_POW2 = False generate
 
 		s_x_tmp <= i_x & ((2 ** integer(clog2(G_DATA_WIDTH))) - G_DATA_WIDTH - 1 downto 0 => '0');
 
@@ -55,7 +60,8 @@ begin
 			);
 	end generate recursive_gen_width_odd;
 
-	recursive_gen_width_even : if G_DATA_WIDTH > 2 and is_power_of_two(G_DATA_WIDTH) = TRUE generate
+
+	recursive_gen_width_even : if G_DATA_WIDTH > 2 and C_IS_POW2 = TRUE generate
 
 		inst_LOD_low : entity work.LOD_T
 			generic map(
@@ -78,7 +84,9 @@ begin
 			);
 
 		s_vld <= s_vld_L or s_vld_H;
-		s_K   <= ("0" & s_K_H) when s_vld_H = '1' else ((0 => s_vld_L) & s_K_L);
+		-- if high valid => ignore rest and prepend 0 for next larger result 
+		-- else: append valid low to K low because upper half is all 0
+		s_K   <= ('0' & s_K_H) when s_vld_H = '1' else (s_vld_L & s_K_L);
 
 	end generate recursive_gen_width_even;
 

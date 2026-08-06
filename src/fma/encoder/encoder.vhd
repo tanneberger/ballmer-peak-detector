@@ -7,7 +7,7 @@ use ieee.math_real.all;
 
 -- for or_reduce
 --use ieee.std_logic_misc.all;
--- use work.utility_pkg.all;
+use work.utility_pkg.all;
 
 entity encoder is
     generic(
@@ -126,7 +126,7 @@ begin
         );
 
     -- Calculate Bits for rounding
-    s_sticky_bit <= s_sticky_shifted(0) or i_sticky or s_shift_tmp;
+    s_sticky_bit <= s_sticky_shifted(0) or i_sticky_op1 or s_shift_tmp;
     s_guard_bit  <= s_sticky_shifted(1);
     s_lsb_bit    <= s_sticky_shifted(2);
 
@@ -166,9 +166,9 @@ begin
     end process;
 
     -- Apply Sign
-    s_negated <= std_logic_vector(unsigned(not s_rounded) + 1) when i_sign = '1' else s_rounded;
-
+    s_negated <= std_logic_vector(unsigned(not s_rounded) + 1) when i_sign_op1 = '1' else s_rounded;
+    
     -- Apply Special Result Values
-    o_result <= i_is_inf & (G_N - 2 downto 0 => '0') when (i_is_inf = '1' or i_is_zero = '1') else i_sign & s_negated;
+    o_result <= s_is_inf & (G_N - 2 downto 0 => '0') when (s_is_inf = '1' or s_is_zero = '1') else i_sign_op1 & s_negated;
 
 end Behavioral;
