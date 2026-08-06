@@ -94,7 +94,7 @@ begin
     s_exponent <= s_adjusted_efficient_exponent(G_ES - 1 downto 0) when s_adjusted_efficient_exponent(G_Bs + G_ES) = '1' and or_reduce(s_abs_efficient_exponent(G_ES - 1 downto 0)) = '1' else s_abs_efficient_exponent(G_ES - 1 downto 0);
 
     -- Concatinate Exponent and Mantissa
-    s_combined_exp_mantissa <= s_exponent & i_mant_op1; --TODO: fix me
+    s_combined_exp_mantissa <= s_exponent & s_mantissa_length_correct; --TODO: fix me
     -- Exponent and Mantissa Packing
 
     -- Create regime bit
