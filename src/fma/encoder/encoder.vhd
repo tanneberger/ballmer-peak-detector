@@ -34,13 +34,12 @@ architecture Behavioral of encoder is
     constant C_INTERNAL_MANTISSA_WIDTH : integer := C_MAX_MANTISSA_WIDTH + 3; -- mantissa + hidden, guard, rounding (and sticky) bit 
 
     -- C_MAX_MANTISSA_WIDTH + Hidden bit + Guard bit + one extra for adjusting/nromalization
-    constant C_TRUNCATED_MANTISSA_WIDTH : integer := C_MAX_MANTISSA_WIDTH + 4;
+    -- constant C_TRUNCATED_MANTISSA_WIDTH : integer := C_MAX_MANTISSA_WIDTH + 4;
 
     --constant C_INTERNAL_MANTISSA_WIDTH : integer := C_MAX_MANTISSA_WIDTH + 3; -- mantissa + hidden, guard, rounding (and sticky) bit
 
     signal s_mantissa_overflow    : std_logic;
     signal s_normalized_lod_k     : std_logic_vector(integer(ceil(log2(real(C_INTERNAL_MANTISSA_WIDTH)))) - 1 downto 0);
-    signal s_normalized_lod_valid : std_logic;
     signal s_valid_adjusted_lod_k : std_logic_vector(integer(ceil(log2(real(C_INTERNAL_MANTISSA_WIDTH)))) - 1 downto 0);
 
     signal s_normalized_hidden_mantissa : std_logic_vector(C_INTERNAL_MANTISSA_WIDTH - 1 downto 0);
