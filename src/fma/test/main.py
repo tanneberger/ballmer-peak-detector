@@ -1,6 +1,5 @@
 import cocotb
 from cocotb.triggers import FallingEdge, Timer
-from sgposit.pcposit import PCPosit
 import random
 import softposit as sp
 from softposit import posit8
@@ -28,6 +27,9 @@ async def random_posit_test(dut):
         expected_value = p_2_c.fma(p_2_a, p_2_b)
         received_value = posit8(bits=dut.o_result.value.integer)
         cocotb.log.info("%f * %f + %f = %s = %s", a, b, c, str(expected_value), str(received_value))
+        p_2_a.toBinary()
+        p_2_b.toBinary()
+        p_2_c.toBinary()
         expected_value.toBinary()
         received_value.toBinary()
         
