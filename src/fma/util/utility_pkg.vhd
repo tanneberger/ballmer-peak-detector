@@ -1,14 +1,15 @@
 library ieee;
+library work;
 use ieee.std_logic_1164.ALL;
 use ieee.math_real.all;
 
-package pkg_utility is
+package utility_pkg is
     function next_power_of_two(n : positive) return positive; -- returns next power of 2 after n
     function or_reduce(input_vec : std_logic_vector) return std_logic;
     function clog2(n : integer) return integer;
 end package;
 
-package body pkg_utility is
+package body utility_pkg is
     function next_power_of_two(n : positive) return positive is
         variable res : positive := 1;
     begin
@@ -40,4 +41,4 @@ begin
     end loop;
     return r;
 end function;
-end package body pkg_utility;
+end package body utility_pkg;

@@ -8,13 +8,13 @@ use work.utility_pkg.all;
 entity fma is
     generic(
         G_N  : integer := 8;
-        G_ES : integer := 2;
+        G_ES : integer := 2
     );
     port(
         i_opa    : in  std_logic_vector(G_N - 1 downto 0);
         i_opb    : in  std_logic_vector(G_N - 1 downto 0);
         i_opc    : in  std_logic_vector(G_N - 1 downto 0);
-        o_result : out std_logic_vector(7 downto 0);
+        o_result : out std_logic_vector(7 downto 0)
     );
 end entity fma;
 
@@ -80,7 +80,7 @@ begin
             i_sign_op2           => s_sign_c,
             i_mant_op2           => s_hidden_fract_c,
             i_eff_exp_op2        => s_efficient_exponent_c,
-            o_sign_result        => s_sign_c,
+            o_sign_result        => s_sign_o,
             o_sticky_result      => s_sticky_bit_o,
             o_mant_result        => s_hidden_fract_o,
             o_eff_exp_add_result => s_efficient_exponent_o
@@ -94,7 +94,7 @@ begin
         )
         port map(
             i_sticky_op1  => s_sticky_bit_o,
-            i_sign_op1    => s_sign_c,  -- TODO: Implement sign check
+            i_sign_op1    => s_sign_o,
             i_mant_op1    => s_hidden_fract_o,
             i_eff_exp_op1 => s_efficient_exponent_o,
             o_result      => o_result

@@ -7,7 +7,7 @@ use ieee.math_real.all;
 
 -- for or_reduce
 --use ieee.std_logic_misc.all;
-use work.utility_pkg.all;
+-- use work.utility_pkg.all;
 
 entity encoder is
     generic(

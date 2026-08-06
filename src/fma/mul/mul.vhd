@@ -20,7 +20,7 @@ entity multiplier is
         -- output
         o_sign_result    : out std_logic;
         o_mant_result    : out std_logic_vector((2 * (G_N - G_ES - 3 + 1)) - 1 downto 0);
-        o_eff_exp_result : out std_logic_vector(G_Bs + G_ES downto 0);
+        o_eff_exp_result : out std_logic_vector(G_Bs + G_ES downto 0)
     );
 end entity multiplier;
 
