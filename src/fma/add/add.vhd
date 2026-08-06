@@ -2,25 +2,29 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity add_fma is
+entity adder is
     generic(
         G_N  : integer := 8;
         G_ES : integer := 2;
         G_Bs : integer
     );
     port(
-        i_mant_product_mul   : in  std_logic_vector((2 * (G_N - G_ES - 3 + 1)) - 1 downto 0);
-        i_eff_exp_mul        : in  std_logic_vector(G_Bs + G_ES + 1 downto 0);
-        i_mant_c             : in  std_logic_vector((2 * (G_N - G_ES - 3 + 1)) - 1 downto 0);
-        i_eff_exp_c          : in  std_logic_vector(G_Bs + G_ES + 1 downto 0);
+        -- input operand 1
+        i_mant_op1   : in  std_logic_vector((2 * (G_N - G_ES - 3 + 1)) - 1 downto 0);
+        i_eff_exp_op1 : in  std_logic_vector(G_Bs + G_ES downto 0);
+
+        -- input operand 2
+        i_mant_op2   : in  std_logic_vector((2 * (G_N - G_ES - 3 + 1)) - 1 downto 0);
+        i_eff_exp_op2 : in  std_logic_vector(G_Bs + G_ES downto 0);
+
         -- outputs
         o_sticky             : out std_logic;
-        o_mant_add_result    : out std_logic_vector((2 * (G_N - G_ES - 3 + 1)) - 1 downto 0);
-        o_eff_exp_add_result : out std_logic_vector(G_Bs + G_ES + 1 downto 0)
+        o_mant_result    : out std_logic_vector((2 * (G_N - G_ES - 3 + 1)) - 1 downto 0);
+        o_eff_exp_add_result : out std_logic_vector(G_Bs + G_ES downto 0)
     );
-end entity add_fma;
+end entity adder;
 
-architecture Behavioral of add_fma is
+architecture Behavioral of adder is
     -- constant
     -- signals
     signal   s_op_mul_greater_op_add : std_logic;

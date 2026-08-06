@@ -16,9 +16,9 @@ entity decoder is
         o_efficient_exponent_a : out std_logic_vector(G_Bs + G_ES downto 0);
         o_efficient_exponent_b : out std_logic_vector(G_Bs + G_ES downto 0);
         o_efficient_exponent_c : out std_logic_vector(G_Bs + G_ES downto 0);
-        o_hidden_fract_a       : out std_logic_vector(G_N - G_ES - 3 downto 0);
-        o_hidden_fract_b       : out std_logic_vector(G_N - G_ES - 3 downto 0);
-        o_hidden_fract_c       : out std_logic_vector(G_N - G_ES - 3 downto 0)
+        o_hidden_fract_a       : out std_logic_vector(2 * (G_N - G_ES - 3 + 1) - 1 downto 0);
+        o_hidden_fract_b       : out std_logic_vector(2 * (G_N - G_ES - 3 + 1) - 1 downto 0);
+        o_hidden_fract_c       : out std_logic_vector(2 * (G_N - G_ES - 3 + 1) - 1 downto 0)
     );
 end entity;
 

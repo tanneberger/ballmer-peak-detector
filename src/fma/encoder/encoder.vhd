@@ -9,27 +9,25 @@ use ieee.math_real.all;
 --use ieee.std_logic_misc.all;
 use work.utility_pkg.all;
 
-entity posit_encode is
+entity encoder is
     generic(
         G_N  : integer := 8;
-        G_ES : integer := 2
+        G_ES : integer := 2;
+        G_Bs : integer
     );
     port(
         --i_clk       : in  std_logic;
         --i_enable    : in  std_logic;
 
-        i_sign                : in  std_logic;
-        i_is_inf              : in  std_logic;
-        i_is_zero             : in  std_logic;
-        i_sticky              : in  std_logic;
-        -- MAX_MANTISSA (G_N-Sign-2xRegime-ES)+ Guard + Sticky
-        i_normalized_mantissa : in  std_logic_vector(G_N - G_ES - 3 + 2 - 1 downto 0);
-        i_efficient_exponent  : in  std_logic_vector(integer(log2(real(G_N))) + G_ES + 1 downto 0);
-        o_result              : out std_logic_vector(G_N - 1 downto 0)
-    );
-end posit_encode;
+        o_sticky                 : in std_logic;
+        i_mant_add_result_op2    : in  std_logic_vector((2 * (G_N - G_ES - 3 + 1)) - 1 downto 0);
+        i_eff_exp_add_result_op2 : in  std_logic_vector(G_Bs + G_ES downto 0);
 
-architecture Behavioral of posit_encode is
+        o_result              : out std_logic_vector(7 downto 0) -- TODO:
+    );
+end encoder;
+
+architecture Behavioral of encoder is
 
     constant C_Bs                       : integer := clog2(G_N);
     -- max number of regime bits 
