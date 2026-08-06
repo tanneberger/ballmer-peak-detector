@@ -1,0 +1,26 @@
+v 4
+file . "tb_posit_add.vhd" "6f001fc738d408cc85f509f86933b4f9d54b370a" "20260805200635.223":
+  entity tb_posit_add at 1( 0) + 0 on 111;
+  architecture test of tb_posit_add at 12( 244) + 0 on 112;
+file / "/home/felix/Projects/Heichips/ballmer-peak-detector/src/fma/add/Verification/../utility_pkg.vhd" "8aa4c695942794da3ff894fa6c3db3cb4e1fd701" "20260805200635.193":
+  package pkg_utility at 1( 0) + 0 on 96 body;
+  package body pkg_utility at 11( 321) + 0 on 97;
+file / "/home/felix/Projects/Heichips/ballmer-peak-detector/src/fma/add/Verification/../LOD_T.vhd" "923721e6a8c170109885232360fe85562c0c9c0f" "20260805200635.196":
+  entity lod_t at 1( 0) + 0 on 98;
+  architecture behav of lod_t at 21( 439) + 0 on 99;
+file / "/home/felix/Projects/Heichips/ballmer-peak-detector/src/fma/add/Verification/../posit_decode.vhd" "8554ace64a8d2e8b70b8349083cd33d82479a867" "20260805200635.197":
+  entity posit_decode at 1( 0) + 0 on 100;
+  architecture behavioral of posit_decode at 24( 845) + 0 on 101;
+file / "/home/felix/Projects/Heichips/ballmer-peak-detector/src/fma/add/Verification/../sticky_shift_det.vhd" "c335cdd5774c6c6b3cd65c9053bef0512c4e15df" "20260805200635.197":
+  entity sticky_shift_det at 1( 0) + 0 on 102;
+  architecture tree of sticky_shift_det at 22( 755) + 0 on 103;
+file / "/home/felix/Projects/Heichips/ballmer-peak-detector/src/fma/add/Verification/../sticky_shifter.vhd" "41c43b48ef42ecddbfce728078dffa76bf9d3f42" "20260805200635.198":
+  entity sticky_shifter at 1( 0) + 0 on 104;
+  architecture open_rtl of sticky_shifter at 22( 587) + 0 on 105;
+  architecture arith_rtl of sticky_shifter at 63( 2273) + 0 on 106;
+file / "/home/felix/Projects/Heichips/ballmer-peak-detector/src/fma/add/Verification/../better_adder.vhd" "8400c2ed93d8c5258a0e43f934d9d2a3cd6c3d38" "20260805200635.198":
+  entity parallel_prefix_adder at 1( 0) + 0 on 107;
+  architecture han_carlson of parallel_prefix_adder at 20( 434) + 0 on 108;
+file / "/home/felix/Projects/Heichips/ballmer-peak-detector/src/fma/add/Verification/../posit_add.vhd" "1fcb6ceb119f0f7b43741ba8f6ee16d74a13ba2f" "20260805200635.200":
+  entity posit_add at 1( 0) + 0 on 109;
+  architecture behavioral of posit_add at 28( 819) + 0 on 110;

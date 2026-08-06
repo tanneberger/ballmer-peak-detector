@@ -12,8 +12,6 @@ entity fma is
         G_ES : integer := 2
     );
     port(
-        i_clk : in  std_logic;
-        i_rst : in  std_logic;
         i_opa : in  std_logic_vector(G_N - 1 downto 0);
         i_opb : in  std_logic_vector(G_N - 1 downto 0);
         i_opc : in  std_logic_vector(G_N - 1 downto 0);
@@ -45,9 +43,9 @@ architecture RTL of fma is
     signal s_signed_regime_1 : std_logic_vector(C_Bs downto 0);
 
     signal s_efficient_exponent_0 : std_logic_vector(C_Bs + G_ES downto 0);
-    signal s_efficient_exponent_1 : std_logic_vector(C_Bs + G_ES downto 0);    
-    signal s_efficient_exponent : std_logic_vector(C_Bs + G_ES + 1 downto 0);
-
+    signal s_efficient_exponent_1 : std_logic_vector(C_Bs + G_ES downto 0);
+    signal s_efficient_exponent   : std_logic_vector(C_Bs + G_ES + 1 downto 0);
+    signal s_op0_greater_op1      : std_logic;
 
 begin
     s_sign_0 <= i_opa(G_N - 1);
@@ -117,7 +115,6 @@ begin
 
     s_hidden_mantissa_0 <= '1' & s_mantissa_0;
     s_hidden_mantissa_1 <= '1' & s_mantissa_1;
-    
 
     s_product <= std_logic_vector(unsigned(s_hidden_mantissa_0) * unsigned(s_hidden_mantissa_1));
 
@@ -131,6 +128,5 @@ begin
     s_efficient_exponent <= std_logic_vector(signed((0 => s_efficient_exponent_0(C_Bs + G_ES)) & s_efficient_exponent_0) + signed((0 => s_efficient_exponent_1(C_Bs + G_ES)) & s_efficient_exponent_1)); -- + signed(s_msb_mantissa));
 
     -------------------------------------- Adder stuff
-    
 
 end architecture RTL;

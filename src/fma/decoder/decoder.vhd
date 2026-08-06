@@ -23,8 +23,9 @@ entity decoder is
 end entity;
 
 architecture Behavioral of decoder is
+    -- constant
     constant C_MAX_MANTISSA_WIDTH : integer := G_N - G_ES - 3;
-
+    -- signals
     signal s_sign_0, s_sign_1, s_sign_2 : std_logic;
     signal s_normalized_operand_0       : std_logic_vector(G_N - 2 downto 0);
     signal s_normalized_operand_1       : std_logic_vector(G_N - 2 downto 0);
