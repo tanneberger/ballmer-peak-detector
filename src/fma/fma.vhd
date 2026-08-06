@@ -78,12 +78,12 @@ begin
             G_Bs => C_Bs
         )
         port map(
-            i_sign_op1           => s_sign_t,
-            i_mant_op1           => s_hidden_fract_t,
-            i_eff_exp_op1        => s_efficient_exponent_t,
+            i_sign_op1           => s_sign_a,
+            i_mant_op1           => s_hidden_fract_a,
+            i_eff_exp_op1        => s_efficient_exponent_a,
             i_sign_op2           => s_sign_c,
-            i_mant_op2           => s_hidden_fract_c,
-            i_eff_exp_op2        => s_efficient_exponent_c,
+            i_mant_op2           => s_hidden_fract_b,
+            i_eff_exp_op2        => s_efficient_exponent_b,
             o_sign_result        => s_sign_o,
             o_sticky_result      => s_sticky_bit_o,
             o_mant_result        => s_hidden_fract_o,

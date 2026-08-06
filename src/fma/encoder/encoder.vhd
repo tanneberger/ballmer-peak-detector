@@ -1,5 +1,10 @@
 library ieee;
 library work;
+-- exp:  01111000
+-- rec:  01110011
+-- a  01110100
+-- b  01111111
+-- c  01111101
 
 use ieee.STD_LOGIC_1164.ALL;
 use ieee.NUMERIC_STD.ALL;

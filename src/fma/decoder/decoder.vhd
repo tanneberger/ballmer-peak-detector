@@ -70,7 +70,7 @@ begin
 
         is_nar_0 := s_sign_0 and (not v_all_zeros_0);
         is_nar_1 := s_sign_1 and (not v_all_zeros_1);
-        is_nar_2 := s_sign_1 and (not v_all_zeros_2);
+        is_nar_2 := s_sign_2 and (not v_all_zeros_2);
 
         o_is_nar <= is_nar_0 or is_nar_1 or is_nar_2;
         
