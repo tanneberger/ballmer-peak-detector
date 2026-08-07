@@ -38,19 +38,23 @@ PL_TARGET_DENSITY_PCT: 0.75
 
 # Wenn die Netlist nach der Flächenoptimierung kleiner ist,
 # kannst du DIE_AREA hier schrittweise verkleinern (z. B. von 350x350 auf 250x250):
-# DIE_AREA: [0, 0, 200, 200]
-# CORE_AREA: [10 10 240 240]
+DIE_AREA: [0, 0, 140, 140]
+CORE_AREA: [10, 10, 130, 130]
 
 # Pin Placement & Lagen
 FP_PIN_ORDER_CFG: dir::pins.cfg
 IO_PIN_H_LAYER: "Metal3"
 IO_PIN_V_LAYER: "Metal2"
 
-# Not 100% sure if this will cause violations later on
-FP_PDN_VSPACING: 1.7
-FP_PDN_HSPACING: 1.7
-FP_PDN_CORE_RING_VSPACING: 1.7
-FP_PDN_CORE_RING_HSPACING: 1.7
+# Use Metal2/Metal3 straps
+PDN_VERTICAL_LAYER: Metal2
+PDN_HORIZONTAL_LAYER: Metal3
+RT_MAX_LAYER: Metal4
+
+#FP_PDN_VSPACING: 1.7
+#FP_PDN_HSPACING: 1.7
+#FP_PDN_CORE_RING_VSPACING: 1.7
+#FP_PDN_CORE_RING_HSPACING": 1.7
 
 # Building the power ring
 FP_PDN_CORE_RING: true
