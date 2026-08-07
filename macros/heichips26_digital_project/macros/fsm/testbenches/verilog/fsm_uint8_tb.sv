@@ -1,35 +1,30 @@
 `timescale 1ns/1ps
 // posit FMA is replaced by plain 8-bit multiply-add. Streams golden/uint8_tb.txt
-// and compares y against golden/uint8_tb_test_vec. The generator still emits
-// 2 commit-padding lines per hidden state which the reworked FSM does not
-// consume, so lines 12 and 13 of every 14-line stage-0 block are skipped.
+// one line per cycle (the FSM consumes the 2 commit-padding lines per hidden
+// state) and compares y against golden/uint8_tb_test_vec.
 module fsm_uint8_tb;
   localparam H = 8, U = 4;
-  localparam S0_LINES = 14;                       // 12 ops + 2 padding lines
-  localparam LINES = H*S0_LINES + U*(2*H + 1);    // 180 lines in the file
-  localparam BEATS = 12*H + U*(2*H + 1);          // 164 beats the FSM consumes
+  localparam BEATS = 14*H + U*(2*H + 1);          // 180 lines, all consumed
   localparam IN_FILE = "../../../../../../golden/uint8_tb.txt";
   localparam Y_FILE  = "../../../../../../golden/uint8_tb_test_vec";
+  localparam G_FILE  = "../../../../../../golden/uint8_tb_golden.txt";
+  localparam OPS0 = 2*(U+2), GRP = OPS0+2, S0END = H*GRP, NG = H*OPS0 + U*(2*H+1);
 
   logic clk = 0, rst_n = 0;
   always #5 clk = ~clk;
 
-  logic [15:0] vec [0:LINES-1];         // one line: {op1, op2}
+  logic [15:0] vec [0:BEATS-1];                   // one line: {op1, op2}
   int expy [0:U-1];
 
-  int n = 0, yn = 0, errors = 0;
-
-  // map DUT beat number to file line, skipping the stage-0 padding
-  function automatic int line_of(input int b);
-    return (b < 12*H) ? (b/12)*S0_LINES + (b%12)
-                      : H*S0_LINES + (b - 12*H);
-  endfunction
+  int n = 0, yn = 0, errors = 0, gn = 0;
+  int ga [0:NG-1], gb [0:NG-1], gc [0:NG-1], gr [0:NG-1];
 
   wire        s_ready, m_valid, m_last, frame_done;
   wire [7:0]  m_data;
   logic [7:0] opa, opb, opc, res = 0;
-  wire [15:0] w = vec[line_of(n)];
-  wire [15:0] s_data = {w[7:0], w[15:8]};         // lane 1 = op2, lane 0 = op1
+  wire [15:0] s_data = {vec[n][7:0], vec[n][15:8]};   // lane 1 = op2, lane 0 = op1
+  wire [7:0]  hwres = opa*opb + opc;
+  wire        pad   = (n < S0END) && (n % GRP >= OPS0);
 
   ssm_fsm #(.H(H), .U(U), .POSIT_ONE(8'd1)) dut (
     .clk(clk), .rst_n(rst_n),
@@ -38,10 +33,21 @@ module fsm_uint8_tb;
     .m_valid(m_valid), .m_data(m_data), .m_last(m_last), .m_ready(1'b1),
     .frame_done(frame_done));
 
-  // the "FMA": 8-bit multiply-add, result registered
   always @(posedge clk) if (rst_n && s_ready) begin
-    res <= opa * opb + opc;
-    n   <= n + 1;
+    res <= hwres;
+    if (pad) begin
+      $display("beat %0d: pad %0d*%0d+%0d=%0d", n, opa, opb, opc, hwres);
+    end else begin
+      if (hwres !== gr[gn][7:0]) begin
+        errors++;
+        $display("beat %0d op %0d: hw %0d*%0d+%0d=%0d  gold %0d*%0d+%0d=%0d  DIFF",
+                 n, gn, opa, opb, opc, hwres, ga[gn], gb[gn], gc[gn], gr[gn]);
+      end else
+        $display("beat %0d op %0d: %0d*%0d+%0d=%0d  ok",
+                 n, gn, opa, opb, opc, hwres);
+      gn <= gn + 1;
+    end
+    n <= n + 1;
   end
 
   always @(posedge clk) if (rst_n && m_valid) begin
@@ -58,6 +64,9 @@ module fsm_uint8_tb;
     int fd, r;
     fd = $fopen(Y_FILE, "r");
     for (int k = 0; k < U; k++) r = $fscanf(fd, "%d,", expy[k]);
+    $fclose(fd);
+    fd = $fopen(G_FILE, "r");
+    for (int k = 0; k < NG; k++) r = $fscanf(fd, "%d %d %d %d", ga[k], gb[k], gc[k], gr[k]);
     $fclose(fd);
     $readmemb(IN_FILE, vec);
 
