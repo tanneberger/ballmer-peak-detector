@@ -1,13 +1,11 @@
 `timescale 1ns/1ps
-// posit FMA is replaced by plain 8-bit multiply-add. Streams golden/uint8_tb.txt
-// one line per cycle (the FSM consumes the 2 commit-padding lines per hidden
-// state) and compares y against golden/uint8_tb_test_vec.
+//   make sim-rtl-verilog CELL=fsm TB=fsm_uint8
 module fsm_uint8_tb;
   localparam H = 8, U = 4;
   localparam BEATS = 14*H + U*(2*H + 1);          // 180 lines, all consumed
-  localparam IN_FILE = "../../../../../../golden/uint8_tb.txt";
-  localparam Y_FILE  = "../../../../../../golden/uint8_tb_test_vec";
-  localparam G_FILE  = "../../../../../../golden/uint8_tb_golden.txt";
+  localparam IN_FILE = "../../../../golden/uint8_tb.txt";
+  localparam Y_FILE  = "../../../../golden/uint8_tb_test_vec";
+  localparam G_FILE  = "../../../../golden/uint8_tb_golden.txt";
   localparam OPS0 = 2*(U+2), GRP = OPS0+2, S0END = H*GRP, NG = H*OPS0 + U*(2*H+1);
 
   logic clk = 0, rst_n = 0;
@@ -62,6 +60,9 @@ module fsm_uint8_tb;
 
   initial begin
     int fd, r;
+    $dumpfile("fsm_uint8_tb.fst");
+    $dumpvars;
+
     fd = $fopen(Y_FILE, "r");
     for (int k = 0; k < U; k++) r = $fscanf(fd, "%d,", expy[k]);
     $fclose(fd);
