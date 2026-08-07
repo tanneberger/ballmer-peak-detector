@@ -1,3 +1,5 @@
+// ssm_fsm
+
 `default_nettype none
 
 module ssm_fsm #(
@@ -5,28 +7,26 @@ module ssm_fsm #(
     parameter integer H            = 8,   // n_hidden
     parameter integer U            = 4,   // n_inout
     parameter integer STREAM_LANES_IN = 2,   // >= 2; lane 0 = op1, lane 1 = op2
-    parameter integer STREAM_LANES_OUT = 1
+    parameter integer STREAM_LANES_OUT = 1,
+    parameter [W-1:0] POSIT_ONE = {2'b01, {(W-2){1'b0}}}  // skip-op identity; 8'd1 for integer tests
 ) (
     input  wire                          clk,
     input  wire                          rst_n,
 
-
     // in_intrf
     input  wire                          s_valid,
     input  wire [STREAM_LANES_IN*W-1:0]     s_data,
-    input  wire [STREAM_LANES_IN-1:0]       s_mask,
     output wire                          s_ready,
 
     // FMA datapath
     output reg  [W-1:0]                  fma_opa,
     output reg  [W-1:0]                  fma_opb,
     output reg  [W-1:0]                  fma_opc,
-    input  wire [W-1:0]                  fma_res,   // combinational: valid now
+    input  wire [W-1:0]                  fma_res,   // registered: result of the op issued last cycle
 
-    // out_intrf 
+    // out_intrf
     output wire                          m_valid,
     output wire [STREAM_LANES_OUT*W-1:0]     m_data,
-    output wire [STREAM_LANES_OUT-1:0]       m_mask,
     output wire                          m_last,    // beat carries y[U-1]
     input  wire                          m_ready,
 
@@ -44,8 +44,6 @@ module ssm_fsm #(
     localparam [3:0] H_LAST   = H[3:0] - 4'd1;
     localparam [3:0] U_LAST   = U[3:0] - 4'd1;
     localparam [1:0] CMT_LAST = 2'd1;
-
-    localparam [W-1:0] POSIT_ONE = {2'b01, {(W-2){1'b0}}};
 
     // legal states
     localparam [2:0] ST_IDLE   = 3'd0,
@@ -69,7 +67,7 @@ module ssm_fsm #(
     // accumulators
     reg [W-1:0] x_int_r, x_int_c, acc;
 
-    // streaming inputs data 
+    // streaming inputs data
     wire [W-1:0] lane0 = s_data[0*W +: W];
     wire [W-1:0] lane1 = s_data[1*W +: W];
 
@@ -105,24 +103,27 @@ module ssm_fsm #(
     reg       wb_gate;
     reg       wb_last;
 
+    wire [W-1:0] x_int_r_q = (wb_v && (wb_dst == DST_XINT_R)) ? fma_res : x_int_r;
+    wire [W-1:0] x_int_c_q = (wb_v && (wb_dst == DST_XINT_C)) ? fma_res : x_int_c;
+    wire [W-1:0] acc_q     = (wb_v && (wb_dst == DST_ACC))    ? fma_res : acc;
+
     // input mux -- opa*opb + opc
     //
     //   ST_S0 slot 0      :  lam.{R,C}[i] * x.{R,R}[i] + bias   (chain head)
-    //   ST_S0 slot 1      : -lam.{C,R}[i] * x.{C,C}[i] + x_int
+    //   ST_S0 slot 1      :  lam.{C,R}[i] * x.{C,C}[i] + x_int
     //   ST_S0 slot 2..U+1 :  B.{R,C}[i,j] * u[j]       + x_int
     //   ST_S1 k == 0      :  C[i,0]       * x[0]       + bias   (chain head)
     //   ST_S1 k <  2H     :  C[i,k]       * x[k]       + acc
     //   ST_S1 skip        :  1.0          * u[i]       + acc
     //
-    // The sign on the Re-chain lam.C term is folded into the streamed weight.
-    
+    // Any sign on a streamed weight is folded in by the host.
     always @* begin
         fma_opa = lane0;                                        // 2:1
         fma_opb = x_head;                                       // 3:1
-        fma_opc = acc;                                          // 4:1
+        fma_opc = acc_q;                                        // 4:1
 
         if (state_reg == ST_S0) begin
-            fma_opc = s0_part ? x_int_c : x_int_r;
+            fma_opc = s0_part ? x_int_c_q : x_int_r_q;
 
             if (s0_slot == 5'd0)
                 fma_opc = lane1;                                // bias seeds it
@@ -145,24 +146,22 @@ module ssm_fsm #(
     reg         y_valid;
     reg         y_last;
 
-    wire emit    = (state_reg == ST_S1) && s1_skip;
-    wire step_ok = ((state_reg == ST_S0) || (state_reg == ST_S1)) && (!emit || !y_valid);
+    wire emit     = (state_reg == ST_S1) && s1_skip;
+    wire issue_ok = ((state_reg == ST_S0) || (state_reg == ST_S1)) && (!emit || !y_valid);
 
-    assign s_ready = step_ok;
+    assign s_ready = issue_ok || (state_reg == ST_S0_CMT);
 
     // "commit this step": operands on the bus are real, so keep the result and
     // advance. The FMA has no enable of its own -- it is always computing.
-    wire step = step_ok && s_valid;
+    wire step     = issue_ok && s_valid;
+    wire cmt_take = (state_reg == ST_S0_CMT) && s_valid;
 
     wire [1:0] issue_dst  = (state_reg == ST_S0) ? (s0_part ? DST_XINT_C : DST_XINT_R)
                                           : (s1_skip ? DST_Y : DST_ACC);
     wire       issue_last = emit && (i_cnt == U_LAST);
 
-    // acc as it will read once any in-flight writeback lands. The ReLU gate is
-    // sampled at issue time, one cycle before the previous FMA result reaches
-    // the acc register, so the register alone is stale for the skip op.
-    wire [W-1:0] acc_fwd  = (wb_v && (wb_dst == DST_ACC)) ? fma_res : acc;
-    wire       acc_pos    = ~acc_fwd[W-1] & (|acc_fwd[W-2:0]);
+    // The ReLU gate is on the pre-skip accumulator, sampled at issue time.
+    wire acc_pos = ~acc_q[W-1] & (|acc_q[W-2:0]);
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -210,26 +209,26 @@ module ssm_fsm #(
 
     assign m_valid = y_valid;
     assign m_data  = y_data;
-    assign m_mask  = 1'b1;
     assign m_last  = y_last;
 
+    
     always @* begin
         x_shift  = 1'b0;
         x_load   = 1'b0;
         x_inject = x_int_r;
 
-        if (state_reg == ST_S0_CMT) begin
+        if (cmt_take) begin
             x_shift  = 1'b1;
             x_load   = 1'b1;
             x_inject = (cmt_cnt == 2'd0) ? x_int_r : x_int_c;
         end else if ((state_reg == ST_S1) && step && !s1_skip) begin
-            x_shift = 1'b1;
+            x_shift = 1'b1;                                     // C*x walks the ring
         end
     end
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            state_reg         <= ST_IDLE;
+            state_reg  <= ST_IDLE;
             i_cnt      <= 4'd0;
             k_cnt      <= 5'd0;
             cmt_cnt    <= 2'd0;
@@ -249,9 +248,9 @@ module ssm_fsm #(
             ST_S0: begin
                 if (step) begin
                     if (k_cnt == S0_LAST) begin
-                        k_cnt   <= 5'd0;
-                        cmt_cnt <= 2'd0;
-                        state_reg      <= ST_S0_CMT;
+                        k_cnt     <= 5'd0;
+                        cmt_cnt   <= 2'd0;
+                        state_reg <= ST_S0_CMT;
                     end else begin
                         k_cnt <= k_cnt + 1'b1;
                     end
@@ -259,17 +258,19 @@ module ssm_fsm #(
             end
 
             ST_S0_CMT: begin
-                if (cmt_cnt == CMT_LAST) begin
-                    cmt_cnt <= 2'd0;
-                    if (i_cnt == H_LAST) begin
-                        i_cnt <= 4'd0;
-                        state_reg    <= ST_S1;
+                if (cmt_take) begin
+                    if (cmt_cnt == CMT_LAST) begin
+                        cmt_cnt <= 2'd0;
+                        if (i_cnt == H_LAST) begin
+                            i_cnt     <= 4'd0;
+                            state_reg <= ST_S1;
+                        end else begin
+                            i_cnt     <= i_cnt + 1'b1;
+                            state_reg <= ST_S0;
+                        end
                     end else begin
-                        i_cnt <= i_cnt + 1'b1;
-                        state_reg    <= ST_S0;
+                        cmt_cnt <= cmt_cnt + 1'b1;
                     end
-                end else begin
-                    cmt_cnt <= cmt_cnt + 1'b1;
                 end
             end
 
@@ -289,7 +290,7 @@ module ssm_fsm #(
 
             ST_DONE: begin
                 frame_done <= 1'b1;
-                state_reg         <= ST_IDLE;
+                state_reg  <= ST_IDLE;
             end
 
             default: state_reg <= ST_IDLE;
