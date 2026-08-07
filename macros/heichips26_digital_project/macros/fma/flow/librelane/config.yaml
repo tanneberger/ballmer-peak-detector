@@ -27,7 +27,6 @@ SYNTH_STRATEGY: "AREA 0"
 # Gemeinsame Nutzung von Rechenressourcen 
 SYNTH_SHARE_RESOURCES: true
 
-
 # Unbenutzte Flops/Logik aggressiv entfernen
 SYNTH_AUTONAME: false
 
@@ -37,20 +36,26 @@ SYNTH_AUTONAME: false
 PL_TARGET_DENSITY_PCT: 0.75
 
 
-
 # Wenn die Netlist nach der Flächenoptimierung kleiner ist,
 # kannst du DIE_AREA hier schrittweise verkleinern (z. B. von 350x350 auf 250x250):
 # DIE_AREA: [0, 0, 200, 200]
 # CORE_AREA: [10 10 240 240]
 
 # Pin Placement & Lagen
-# FP_PIN_ORDER_CFG: "dir::pin_order.cfg"
+FP_PIN_ORDER_CFG: dir::pins.cfg
 IO_PIN_H_LAYER: "Metal3"
 IO_PIN_V_LAYER: "Metal2"
-PDN_MULTILAYER: false
-RT_MAX_LAYER: "TopMetal1"
+
+# Not 100% sure if this will cause violations later on
+FP_PDN_VSPACING: 1.7
+FP_PDN_HSPACING: 1.7
+FP_PDN_CORE_RING_VSPACING: 1.7
+FP_PDN_CORE_RING_HSPACING: 1.7
+
+# Building the power ring
+FP_PDN_CORE_RING: true
+
 # Supply Nets
 VDD_NETS: ["VPWR"]
 GND_NETS: ["VGND"]
 
-FP_PIN_ORDER_CFG: dir::pins.cfg
