@@ -81,7 +81,7 @@ module top (
           .VPWR  (VPWR),
           .VGND  (VGND),
       `endif
-        .i_clk      (clk),
+        //.i_clk      (clk),
         //.rst      (~rst_n),   // fma.vhd resets active high
         .i_opa    (fma_opa),
         .i_opb    (fma_opb),
