@@ -2,9 +2,13 @@ import numpy as np
 
 np.random.seed(42)
 
+GOLD = []
+
 def fma(mul1, mul2, add):
-    print(mul1, mul2, add, "|", mul1 * mul2 + add)
-    return mul1 * mul2 + add
+    r = mul1 * mul2 + add
+    print(mul1, mul2, add, "|", r)
+    GOLD.append("%d %d %d %d" % (int(mul1), int(mul2), int(add), int(r)))
+    return r
 
 
 class DataStream:
@@ -199,6 +203,9 @@ def sequence(IS: InternalStorage, DS: DataStream):
         IS.acc = fma(mul1=DS.C_matrix.R[j, 0],
                      mul2=IS.x_state.R[0, 0],
                      add=DS.c_bias.R[0, j])
+        IS.acc = fma(mul1=DS.C_matrix.C[j, 0],
+                     mul2=IS.x_state.C[0, 0],
+                     add=IS.acc)
         for i in range(1, n_hidden):
             IS.acc = fma(mul1=DS.C_matrix.R[j, i],
                          mul2=IS.x_state.R[0, i],
@@ -247,6 +254,8 @@ def gen_datastream(DS: DataStream):
     for j in range(n_inout):
         s.append([DS.C_matrix.R[j, 0],
                   DS.c_bias.R[0, j]])
+        s.append([DS.C_matrix.C[j, 0],
+                  "XXXXXXXX"])
         for i in range(1, n_hidden):
             s.append([DS.C_matrix.R[j, i],
                       DS.c_bias.R[0, j]])
@@ -298,6 +307,9 @@ if __name__ == "__main__":
     with open("uint8_tb_test_vec", "w") as g:
         vec = "".join([str(y_out.T[k])[1] + ", " for k in range(n_inout)])
         g.write(vec)
+
+    with open("uint8_tb_golden.txt", "w") as f:
+        f.write("\n".join(GOLD) + "\n")
 
 
     #print(f"X_s: {x_new.R + x_new.C * 1.0j}")
