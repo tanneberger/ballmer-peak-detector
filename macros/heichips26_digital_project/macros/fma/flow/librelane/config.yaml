@@ -52,3 +52,5 @@ RT_MAX_LAYER: "TopMetal1"
 # Supply Nets
 VDD_NETS: ["VPWR"]
 GND_NETS: ["VGND"]
+
+FP_PIN_ORDER_CFG: dir::pins.cfg
