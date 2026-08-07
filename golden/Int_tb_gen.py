@@ -2,6 +2,7 @@ import numpy as np
 
 
 def fma(mul1, mul2, add):
+    print(mul1, mul2, add, "|", mul1 * mul2 + add)
     return mul1 * mul2 + add
 
 
@@ -152,10 +153,11 @@ def fill_with_random_inputs(IS: InternalStorage, DS: DataStream):
     DS.y_out_k = np.zeros((1, n_inout))
 
     # Register Values
-    IS.x_state = Complex_Num(np.zeros((1, n_hidden)),
-                             np.zeros((1, n_hidden)))
-    IS.acc = np.zeros(1)
-    IS.x_int = Complex_Num(np.zeros(1), np.zeros(1))
+    IS.x_state = Complex_Num(np.zeros((1, n_hidden), dtype=np.uint32),
+                             np.zeros((1, n_hidden), dtype=np.uint32))
+    IS.acc = np.zeros(1, dtype=np.uint32)
+    IS.x_int = Complex_Num(np.zeros(1, dtype=np.uint32),
+                           np.zeros(1, dtype=np.uint32))
 
 
 def sequence(IS: InternalStorage, DS: DataStream):
@@ -187,7 +189,7 @@ def sequence(IS: InternalStorage, DS: DataStream):
                              mul2=DS.u_k[0, j],
                              add=IS.x_int.C)
 
-        # Copy intermediate states into SRAM
+        # Copy intermediate states into SR
         IS.x_state.R[0, i] = IS.x_int.R
         IS.x_state.C[0, i] = IS.x_int.C
 
@@ -269,29 +271,6 @@ def gen_datastream(DS: DataStream):
     return s_new
 
 
-def math_groundtruth(IS: InternalStorage, DS: DataStream):
-
-    # Inputs:
-    u_k = DS.u_k.T
-    x_k = IS.x_state.R + IS.x_state.C * 1.0j
-
-    # Weights:
-    lambda_v = DS.lambda_v.R + DS.lambda_v.C * 1.0j
-    B = DS.B_matrix.R + DS.B_matrix.C * 1.0j
-    b = DS.b_bias.R + DS.b_bias.C * 1.0j
-    C = DS.C_matrix.R + DS.C_matrix.C * 1.0j
-    c = DS.c_bias.R + DS.c_bias.C * 1.0j
-
-    x_k_new = lambda_v.T * x_k.T + (B @ u_k) + b.T
-    y_k_out = (C @ x_k_new) + c.T
-    y_k_out_R = np.real(y_k_out)
-
-    mask = np.where(y_k_out_R < 0)
-    y_k_out_R[mask] = 0
-    y_out = u_k + y_k_out_R
-
-    return x_k_new, y_out
-
 if __name__ == "__main__":
 
     n_inout = 4
@@ -316,5 +295,5 @@ if __name__ == "__main__":
         g.write(vec)
 
 
-    print(f"X_s: {x_new.R + x_new.C * 1.0j}")
-    print(f"Y_s: {y_out}")
+    #print(f"X_s: {x_new.R + x_new.C * 1.0j}")
+    #print(f"Y_s: {y_out}")

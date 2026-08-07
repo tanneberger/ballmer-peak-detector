@@ -160,9 +160,9 @@ def fill_with_random_inputs(IS: InternalStorage, DS: DataStream):
 
 
 def sequence(IS: InternalStorage, DS: DataStream):
-    # UPDATE HIDDEN STATE X_K
+    # UPDATE HIDDEN STATE X_k
     for i in range(n_hidden):
-        # REAL PART
+        # REAL PART of X_k
         IS.x_int.R = fma(mul1=DS.lambda_v.R[0, i],
                          mul2=IS.x_state.R[0, i],
                          add=DS.b_bias.R[0, i])
@@ -175,7 +175,7 @@ def sequence(IS: InternalStorage, DS: DataStream):
                              mul2=DS.u_k[0, j],
                              add=IS.x_int.R)
 
-        # COMPLEX PART
+        # COMPLEX PART of X_k
         IS.x_int.C = fma(mul1=DS.lambda_v.R[0, i],
                          mul2=IS.x_state.C[0, i],
                          add=DS.b_bias.C[0, i])
@@ -188,11 +188,11 @@ def sequence(IS: InternalStorage, DS: DataStream):
                              mul2=DS.u_k[0, j],
                              add=IS.x_int.C)
 
-        # Copy intermediate states into SRAM
+        # Copy intermediate states into Shift Reg
         IS.x_state.R[0, i] = IS.x_int.R
         IS.x_state.C[0, i] = IS.x_int.C
 
-    # CALCULATE Y_K0
+    # CALCULATE Y_k
     for j in range(n_inout):
         for i in range(n_hidden):
             IS.acc = fma(mul1=DS.C_matrix.R[j, i],
