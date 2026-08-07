@@ -196,10 +196,13 @@ def sequence(IS: InternalStorage, DS: DataStream):
 
     # CALCULATE Y_K0
     for j in range(n_inout):
-        for i in range(n_hidden):
+        IS.acc = fma(mul1=DS.C_matrix.R[j, 0],
+                     mul2=IS.x_state.R[0, 0],
+                     add=DS.c_bias.R[0, j])
+        for i in range(1, n_hidden):
             IS.acc = fma(mul1=DS.C_matrix.R[j, i],
                          mul2=IS.x_state.R[0, i],
-                         add=DS.c_bias.R[0, j])
+                         add=IS.acc)
             IS.acc = fma(mul1=DS.C_matrix.C[j, i],
                          mul2=IS.x_state.C[0, i],
                          add=IS.acc)
@@ -227,7 +230,7 @@ def gen_datastream(DS: DataStream):
                       DS.u_k[0, j]])
 
         s.append([DS.lambda_v.R[0, i],
-                  DS.b_bias.R[0, i]])
+                  DS.b_bias.C[0, i]])
         s.append([DS.lambda_v.C[0, i],
                   "XXXXXXXX"])
 
@@ -242,8 +245,9 @@ def gen_datastream(DS: DataStream):
 
     # CALCULATE Y_K0
     for j in range(n_inout):
-        for i in range(n_hidden):
-
+        s.append([DS.C_matrix.R[j, 0],
+                  DS.c_bias.R[0, j]])
+        for i in range(1, n_hidden):
             s.append([DS.C_matrix.R[j, i],
                       DS.c_bias.R[0, j]])
             s.append([DS.C_matrix.C[j, i],
