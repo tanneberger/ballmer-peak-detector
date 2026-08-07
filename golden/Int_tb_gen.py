@@ -152,8 +152,8 @@ def fill_with_random_inputs(IS: InternalStorage, DS: DataStream):
     DS.y_out_k = np.zeros((1, n_inout))
 
     # Register Values
-    IS.x_state = Complex_Num(np.random.randint(size=(1, n_hidden), low=0, high=3),
-                             np.random.randint(size=(1, n_hidden), low=0, high=3))
+    IS.x_state = Complex_Num(np.zeros((1, n_hidden)),
+                             np.zeros((1, n_hidden)))
     IS.acc = np.zeros(1)
     IS.x_int = Complex_Num(np.zeros(1), np.zeros(1))
 
@@ -166,7 +166,7 @@ def sequence(IS: InternalStorage, DS: DataStream):
                          mul2=IS.x_state.R[0, i],
                          add=DS.b_bias.R[0, i])
         IS.x_int.R = fma(mul1=DS.lambda_v.C[0, i],
-                         mul2=-IS.x_state.C[0, i],
+                         mul2=IS.x_state.C[0, i],
                          add=IS.x_int.R)
 
         for j in range(n_inout):
@@ -198,7 +198,7 @@ def sequence(IS: InternalStorage, DS: DataStream):
                          mul2=IS.x_state.R[0, i],
                          add=DS.c_bias.R[0, j])
             IS.acc = fma(mul1=DS.C_matrix.C[j, i],
-                         mul2=-IS.x_state.C[0, i],
+                         mul2=IS.x_state.C[0, i],
                          add=IS.acc)
 
         # SKIP-LAYER & ReLU
@@ -310,6 +310,11 @@ if __name__ == "__main__":
     IS, DS = sequence(IS, DS)
     x_new = IS.x_state
     y_out = DS.y_out_k
+
+    with open("uint8_tb_test_vec", "w") as g:
+        vec = "".join([str(y_out.T[k])[1] + ", " for k in range(n_inout)])
+        g.write(vec)
+
 
     print(f"X_s: {x_new.R + x_new.C * 1.0j}")
     print(f"Y_s: {y_out}")

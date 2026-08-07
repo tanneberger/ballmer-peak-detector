@@ -115,6 +115,7 @@ module ssm_fsm #(
     //   ST_S1 skip        :  1.0          * u[i]       + acc
     //
     // The sign on the Re-chain lam.C term is folded into the streamed weight.
+    
     always @* begin
         fma_opa = lane0;                                        // 2:1
         fma_opb = x_head;                                       // 3:1
