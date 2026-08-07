@@ -65,12 +65,10 @@ module top (
     );
 
     // placeholder - to be added.
-    fma #(
-        .W        (W),
-        .ES       (2)
+    (* keep *) fma #(
     ) fma_0 (
-        .clk      (clk),
-        .rst      (~rst_n),   // fma.vhd resets active high
+        .i_clk      (clk),
+        //.rst      (~rst_n),   // fma.vhd resets active high
         .i_opa    (fma_opa),
         .i_opb    (fma_opb),
         .i_opc    (fma_opc),

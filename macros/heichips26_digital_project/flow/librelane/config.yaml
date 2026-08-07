@@ -54,24 +54,27 @@ PDN_HORIZONTAL_LAYER: Metal3
 #USE_SLANG: true
 
 MACROS:
-  counter:
+  fma:
     gds:
-      - dir::../../macros/counter/final/gds/counter.gds
+      - dir::../../macros/fma/final/gds/fma.gds
     lef:
-      - dir::../../macros/counter/final/lef/counter.lef
-    vh:
-      - dir::../../macros/counter/final/vh/counter.vh
+      - dir::../../macros/fma/final/lef/fma.lef
+    nl:
+      - dir::../../macros/fma/final/nl/fma.nl.v
+  
+    #vh:
+    #  - dir::../../macros/fma/final/vh/fma.vh
     lib:
       nom_typ_1p20V_25C:
-        - dir::../../macros/counter/final/lib/nom_typ_1p20V_25C/counter__nom_typ_1p20V_25C.lib
+        - dir::../../macros/fma/final/lib/nom_typ_1p20V_25C/fma__nom_typ_1p20V_25C.lib
       nom_fast_1p32V_m40C:
-        - dir::../../macros/counter/final/lib/nom_fast_1p32V_m40C/counter__nom_fast_1p32V_m40C.lib
+        - dir::../../macros/fma/final/lib/nom_fast_1p32V_m40C/fma__nom_fast_1p32V_m40C.lib
       nom_slow_1p08V_125C:
-        - dir::../../macros/counter/final/lib/nom_slow_1p08V_125C/counter__nom_slow_1p08V_125C.lib
+        - dir::../../macros/fma/final/lib/nom_slow_1p08V_125C/fma__nom_slow_1p08V_125C.lib
     spef:
       nom:
-        - dir::../../macros/counter/final/spef/nom/counter.nom.spef
+        - dir::../../macros/fma/final/spef/nom/fma.nom.spef
     instances:
-      counter_0:
+      top_0.fma_0:
         location: [100, 50]
         orientation: N
