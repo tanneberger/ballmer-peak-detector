@@ -1,0 +1,28 @@
+v 4
+file . "tb_posit_fma.vhd" "6c3fc19c06e57c71c09587cfcac98a455e0c1ab1" "20260807040554.579":
+  entity tb_posit_fma at 1( 0) + 0 on 117;
+  architecture test of tb_posit_fma at 12( 244) + 0 on 118;
+file / "/home/felix/Projects/Heichips/ballmer-peak-detector/macros/heichips26_digital_project/macros/fma/testbenches/../rtl/utility_pkg.vhd" "af11ecd5d25b712b89405be00cd05337c20d9dac" "20260807040554.560":
+  package utility_pkg at 1( 0) + 0 on 101 body;
+  package body utility_pkg at 13( 349) + 0 on 102;
+file / "/home/felix/Projects/Heichips/ballmer-peak-detector/macros/heichips26_digital_project/macros/fma/testbenches/../rtl/LOD_T.vhd" "b27935720b3e413543ff1fc9f58666115cf753e0" "20260807040554.561":
+  entity lod_t at 1( 0) + 0 on 103;
+  architecture behav of lod_t at 21( 439) + 0 on 104;
+file / "/home/felix/Projects/Heichips/ballmer-peak-detector/macros/heichips26_digital_project/macros/fma/testbenches/../rtl/posit_decode.vhd" "8554ace64a8d2e8b70b8349083cd33d82479a867" "20260807040554.562":
+  entity posit_decode at 1( 0) + 0 on 105;
+  architecture behavioral of posit_decode at 24( 845) + 0 on 106;
+file / "/home/felix/Projects/Heichips/ballmer-peak-detector/macros/heichips26_digital_project/macros/fma/testbenches/../rtl/sticky_shifter_det.vhd" "365443a7582664749c9dcd49cc19ec8b27f5542d" "20260807040554.562":
+  entity sticky_shift_det at 1( 0) + 0 on 107;
+  architecture tree of sticky_shift_det at 22( 755) + 0 on 108;
+file / "/home/felix/Projects/Heichips/ballmer-peak-detector/macros/heichips26_digital_project/macros/fma/testbenches/../rtl/posit_encode.vhd" "0474b37bd7e9a34695f6a3c4ff191ea0568b1a53" "20260807040554.563":
+  entity posit_encode at 1( 0) + 0 on 109;
+  architecture behavioral of posit_encode at 32( 909) + 0 on 110;
+file / "/home/felix/Projects/Heichips/ballmer-peak-detector/macros/heichips26_digital_project/macros/fma/testbenches/../rtl/posit_mul.vhd" "925e68c88fb44a5f54506e497fa0b5f9a3cb4302" "20260807040554.564":
+  entity posit_mul at 1( 0) + 0 on 111;
+  architecture behavioral of posit_mul at 24( 499) + 0 on 112;
+file / "/home/felix/Projects/Heichips/ballmer-peak-detector/macros/heichips26_digital_project/macros/fma/testbenches/../rtl/posit_add.vhd" "f9795819188c6fd210b4f59f81d6b45ad22c7c9a" "20260807040554.565":
+  entity posit_add at 1( 0) + 0 on 113;
+  architecture behavioral of posit_add at 26( 744) + 0 on 114;
+file / "/home/felix/Projects/Heichips/ballmer-peak-detector/macros/heichips26_digital_project/macros/fma/testbenches/../rtl/fma.vhd" "6268b6653d2e9bbca4a079cda29bde4523fd7fee" "20260807040554.565":
+  entity fma at 1( 0) + 0 on 115;
+  architecture structural of fma at 18( 428) + 0 on 116;

@@ -1,0 +1,50 @@
+# Area-Optimized Configuration for FMA Macro
+# 
+
+DESIGN_NAME: "fma"
+PDK: "ihp-sg13cmos5l"
+
+VHDL_FILES:
+  - "dir::../../rtl/utility_pkg.vhd"
+  - "dir::../../rtl/LOD_T.vhd"
+  - "dir::../../rtl/posit_decode.vhd"
+  - "dir::../../rtl/sticky_shifter_det.vhd"
+  - "dir::../../rtl/posit_encode.vhd"
+  - "dir::../../rtl/posit_mul.vhd"
+  - "dir::../../rtl/posit_add.vhd"
+  - "dir::../../rtl/fma.vhd"
+
+# 1. SYNTHESIS & AREA OPTIMIZATION
+PNR_SDC_FILE: "dir::constraints.sdc"
+
+# Flächenorientierte ABC-Synthesestrategie 
+SYNTH_STRATEGY: "AREA 0"
+
+# Gemeinsame Nutzung von Rechenressourcen 
+SYNTH_SHARE_RESOURCES: true
+
+
+# Unbenutzte Flops/Logik aggressiv entfernen
+SYNTH_AUTONAME: false
+
+# 2. FLOORPLANNING & DENSITY 
+
+# Höhere Platzierungsdichte (0.65 - 0.75)
+PL_TARGET_DENSITY_PCT: 0.75
+
+
+
+# Wenn die Netlist nach der Flächenoptimierung kleiner ist,
+# kannst du DIE_AREA hier schrittweise verkleinern (z. B. von 350x350 auf 250x250):
+# DIE_AREA: [0, 0, 200, 200]
+# CORE_AREA: [10 10 240 240]
+
+# Pin Placement & Lagen
+# FP_PIN_ORDER_CFG: "dir::pin_order.cfg"
+IO_PIN_H_LAYER: "Metal3"
+IO_PIN_V_LAYER: "Metal2"
+PDN_MULTILAYER: false
+RT_MAX_LAYER: "TopMetal1"
+# Supply Nets
+VDD_NETS: ["VPWR"]
+GND_NETS: ["VGND"]
