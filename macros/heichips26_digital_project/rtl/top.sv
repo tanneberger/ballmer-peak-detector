@@ -7,8 +7,12 @@ module top (
     // Assume muxing inside the eFPGA -> 40 general purpose IO pins
     // If chip IO will have 16 in, 16 out, then we'll have to do some multiplexing inside the eFPGA.
 
-    // Stream in: 17 pins -- two 8-bit lanes per beat, no mask: the schedule is
-    // fixed, so each lane's role follows from the FSM state alone.
+    `ifdef USE_POWER_PINS
+      inout  wire VPWR,
+      inout  wire VGND,
+    `endif
+    // Stream in: 19 pins
+
     input  wire        s_valid,
     input  wire [15:0] s_data,   // lane 0 = op1, lane 1 = op2
     output wire        s_ready,  // 1 pin
@@ -73,7 +77,11 @@ module top (
     // placeholder - to be added.
     (* keep *) fma #(
     ) fma_0 (
-        .clk      (clk),
+      `ifdef USE_POWER_PINS
+          .VPWR  (VPWR),
+          .VGND  (VGND),
+      `endif
+        .i_clk      (clk),
         //.rst      (~rst_n),   // fma.vhd resets active high
         .i_opa    (fma_opa),
         .i_opb    (fma_opb),

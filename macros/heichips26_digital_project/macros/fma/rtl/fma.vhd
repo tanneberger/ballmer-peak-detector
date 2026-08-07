@@ -8,7 +8,6 @@ entity fma is
         G_ES : integer := 2
     );
     port(
-        i_clk : std_logic;
         i_opa    : in  std_logic_vector(G_N - 1 downto 0);
         i_opb    : in  std_logic_vector(G_N - 1 downto 0);
         i_opc    : in  std_logic_vector(G_N - 1 downto 0);
