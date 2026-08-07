@@ -1,5 +1,6 @@
 import numpy as np
 
+np.random.seed(42)
 
 def fma(mul1, mul2, add):
     print(mul1, mul2, add, "|", mul1 * mul2 + add)
