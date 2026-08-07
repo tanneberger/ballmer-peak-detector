@@ -6,7 +6,7 @@ MAKEFILE_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 RUN_TAG = $(shell ls -1 $(LIBRELANE_DIR)/runs 2>/dev/null | tail -n 1)
 
 # Variables
-TOP = heichips26_digital_project
+TOP = fsm
 
 .DEFAULT_GOAL := help
 
@@ -19,27 +19,27 @@ CELL ?= $(TOP)
 WAVEFORM_VIEWER ?= gtkwave
 
 # Folder structure
-MACROS_DIR      := macros
 COCOTB_DIR      := testbenches/cocotb
 VERILOG_TB_DIR 	:= testbenches/verilog
+XSCHEM_TB_DIR  	:= testbenches/xschem
+XSCHEM_SCH_DIR  := schematic/xschem
+SCRIPTS_DIR   	:= scripts
+SIM_PLOT_DIR  	:= testbenches/xschem/plot_simulations
 REPORT_DIR     	:= verification
 SRC_DIR 		:= rtl
 NET_NL_DIR    	:= netlist/nl
 NET_PNL_DIR  	:= netlist/pnl
 NET_SPICE_DIR 	:= netlist/spice
+XSPICE_DIR  	:= netlist/xspice
 LIBRELANE_DIR 	:= flow/librelane
 FLOW_FINAL_DIR 	:= flow/final
 FINAL_DIR      	:= final
 
 # Variables for simulation and linting targets
-# The fsm sub-macro RTL is needed for linting and RTL simulation of the whole
-# design; top.sv is the harness-independent core that the wrapper instantiates.
 MODULES_SYNTH := \
-	$(SRC_DIR)/heichips26_digital_project.sv \
-	$(SRC_DIR)/top.sv \
-	$(MACROS_DIR)/fsm/rtl/fsm.sv \
-	$(MACROS_DIR)/fsm/rtl/fma.sv \
-	$(MACROS_DIR)/fsm/rtl/shift_register.sv
+	$(SRC_DIR)/fsm.sv \
+	$(SRC_DIR)/fma.sv \
+	$(SRC_DIR)/shift_register.sv
 
 MODULES_SIM := \
 	$(MODULES_SYNTH)
@@ -63,6 +63,8 @@ help: ## Show this help message
 	@echo ''
 	@echo 'CELL defaults to $(TOP). Override to lint or simulate subcells.'
 	@echo 'WAVEFORM_VIEWER defaults to gtkwave. Use surfer to launch Surfer instead.'
+	@echo 'TB selects the Xschem testbench for sim-gl-xschem (default: <CELL>_tb_tran).'
+	@echo 'SCRIPT selects the plotting script for sim-view-xschem (default: plot_<CELL>).'
 .PHONY: help
 # ================================================================================================
 
@@ -72,14 +74,20 @@ lint-verilog: ## Lint Verilog source files with Verilator (usage: make lint-veri
 	verilator --lint-only -I"$(SRC_DIR)" $(_LINT_SRCS)
 .PHONY: lint-verilog
 
-lint-verilog-all: ## Lint all Verilog source files (counter sub-macro + heichips26_digital_project)
-	$(MAKE) -C $(MACROS_DIR)/counter lint-verilog-all
-	$(MAKE) lint-verilog
+lint-verilog-all: ## Lint all Verilog source files (fsm)
+	$(MAKE) lint-verilog CELL=fsm
 .PHONY: lint-verilog-all
 # ================================================================================================
 
 
 # Simulation Targets
+# Testbench for the Xschem simulation targets (default: <CELL>_tb_tran)
+# Override with: make <target> TB=<testbenchname>
+TB ?= $(CELL)_tb_tran
+# Plotting script for sim-view-xschem (default: plot_<CELL>)
+# Override with: make <target> SCRIPT=<scriptname>
+SCRIPT ?= plot_$(CELL)
+
 sim-rtl-verilog: ## Run RTL simulation of CELL cell with Icarus Verilog (usage: make sim-rtl-verilog [CELL=<cellname>])
 	iverilog -g2012 -DSIM -o $(VERILOG_TB_DIR)/test_$(CELL) $(_SIM_SRCS) $(VERILOG_TB_DIR)/$(CELL)_tb.$(_TB_EXT)
 	cd $(VERILOG_TB_DIR) && vvp test_$(CELL) -fst
@@ -114,10 +122,26 @@ sim-view-cocotb: ## View CELL cell cocotb simulation waveforms (usage: make sim-
 	fi
 .PHONY: sim-view-cocotb
 
-sim-all: ## Simulate the macro (RTL Verilog + RTL/GL cocotb for heichips26_digital_project)
+sim-gl-xschem: ## Run gate-level simulation of CELL cell with Xschem in batch mode (usage: make sim-gl-xschem [CELL=<cellname>] [TB=<testbenchname>])
+	mkdir -p $(XSCHEM_TB_DIR)/simulations $(SIM_PLOT_DIR)/data
+	cd $(XSCHEM_TB_DIR) && xschem -r -x -q --rcfile xschemrc --command ' \
+		xschem set netlist_type spice; \
+		set netlist_dir $(abspath $(XSCHEM_TB_DIR)/simulations); \
+		xschem save; \
+		xschem netlist \
+	' $(TB).sch
+	cd $(XSCHEM_TB_DIR)/simulations && ngspice -b $(TB).spice
+.PHONY: sim-gl-xschem
+
+sim-view-xschem: ## Plot Xschem simulation results (usage: make sim-view-xschem [SCRIPT=<scriptname>])
+	SHOW_PLOTS=1 python3 $(SIM_PLOT_DIR)/$(SCRIPT).py
+.PHONY: sim-view-xschem
+
+sim-all: ## Simulate the macro (RTL Verilog + RTL/GL cocotb + GL Xschem for fsm)
 	$(MAKE) sim-rtl-verilog
 	$(MAKE) sim-rtl-cocotb
 	$(MAKE) sim-gl-cocotb
+	$(MAKE) sim-gl-xschem
 .PHONY: sim-all
 # ================================================================================================
 
@@ -200,16 +224,19 @@ copy-netlist: ## Copy final output spice, pnl and nl netlists from the last Libr
 # ================================================================================================
 
 
+# Generate XSPICE Target
+# Runs as part of `build-top` (after `copy-netlist`) so the XSPICE model always matches the
+# netlists of the current LibreLane run. Can also be run standalone to regenerate the model.
+# Pin reordering uses sak-pin-reorder.py, vendored from IIC-OSIC-TOOLS (see scripts/.sak-scripts-version).
+generate-xspice: ## Generate XSPICE model from the LibreLane-extracted SPICE netlist
+	mkdir -p $(XSPICE_DIR)
+	python3 $(SCRIPTS_DIR)/spi2xspice.py $(PDK_ROOT)/$(PDK)/libs.ref/sg13cmos5l_stdcell/lib/sg13cmos5l_stdcell_typ_1p20V_25C.lib -io_time=500p -time=50p -idelay=5p -odelay=50p -cload=250f $(NET_SPICE_DIR)/${TOP}.spice $(XSPICE_DIR)/${TOP}.xspice
+	python3 $(SCRIPTS_DIR)/sak-pin-reorder.py $(XSCHEM_SCH_DIR)/${TOP}.sym $(XSPICE_DIR)/${TOP}.xspice --format xspice
+.PHONY: generate-xspice
+# ================================================================================================
+
+
 # Build Targets
-build-counter: ## Lint, build, verify and simulate the counter macro
-	@$(MAKE) -C $(MACROS_DIR)/counter all
-.PHONY: build-counter
-
-build-macros: ## Lint, build, verify and simulate all macros
-	$(MAKE) build-counter
-#	ToDo: further macros
-.PHONY: build-macros
-
 build-fpga: ## Build FPGA bitstream (usage: make build-fpga [BOARD=ulx3s])
 	@$(MAKE) -C fpga all
 .PHONY: build-fpga
@@ -222,11 +249,12 @@ flash-fpga: ## Write FPGA bitstream to flash (usage: make flash-fpga [BOARD=ulx3
 	@$(MAKE) -C fpga flash_bitstream
 .PHONY: flash-fpga
 
-build-top: ## Build macro (run LibreLane with KLayout & Magic DRC checks, copy reports, copy final files, and copy netlists)
+build-top: ## Build macro (run LibreLane with KLayout & Magic DRC checks, copy reports, copy final files, copy netlists, and generate XSPICE model)
 	$(MAKE) librelane
 	$(MAKE) copy-reports
 	$(MAKE) copy-final
 	$(MAKE) copy-netlist
+	$(MAKE) generate-xspice
 #	$(MAKE) librelane-openroad
 .PHONY: build-top
 # ================================================================================================
@@ -238,9 +266,10 @@ build-top: ## Build macro (run LibreLane with KLayout & Magic DRC checks, copy r
 
 
 # Lint, Build, Verify and Simulate All Target
-all: ## Lint, build, verify and simulate the macros and the TOP cell
+# Linting runs first to fail fast; the simulations run after the build, so the gate-level
+# simulations use the netlists and the XSPICE model produced by this build.
+all: ## Lint, build, verify and simulate the macro
 	$(MAKE) lint-verilog-all
-	$(MAKE) build-macros
 	$(MAKE) build-fpga
 	$(MAKE) build-top
 	$(MAKE) sim-all
@@ -248,26 +277,14 @@ all: ## Lint, build, verify and simulate the macros and the TOP cell
 # ================================================================================================
 
 
-# Clean Targets
-clean: ## Delete all generated files and folders of the TOP cell (LibreLane outputs, final, netlist, reports, simulation and FPGA outputs)
+# Clean Target
+clean: ## Delete all generated files and folders (LibreLane outputs, final, netlist, reports, simulation and FPGA outputs)
 	rm -rf $(LIBRELANE_DIR)/runs $(FLOW_FINAL_DIR)
 	rm -rf final netlist
 	rm -rf $(REPORT_DIR)
 	rm -rf $(COCOTB_DIR)/sim_build $(VERILOG_TB_DIR)/*.fst
+	rm -rf $(XSCHEM_TB_DIR)/simulations
+	rm -rf $(SIM_PLOT_DIR)/data $(SIM_PLOT_DIR)/figures $(SIM_PLOT_DIR)/__pycache__
 	@$(MAKE) -C fpga clean
 .PHONY: clean
-
-clean-counter: ## Delete all generated files and folders of the counter macro
-	@$(MAKE) -C $(MACROS_DIR)/counter clean
-.PHONY: clean-counter
-
-clean-macros: ## Delete all generated files and folders of all macros
-	$(MAKE) clean-counter
-#	ToDo: further macros
-.PHONY: clean-macros
-
-clean-all: ## Delete all generated files and folders of the macros and the TOP cell
-	$(MAKE) clean-macros
-	$(MAKE) clean
-.PHONY: clean-all
 # ================================================================================================

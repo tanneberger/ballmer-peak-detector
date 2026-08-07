@@ -12,7 +12,9 @@ meta:
     Checker.IllegalOverlap: null
 
 DESIGN_NAME: heichips26_digital_project
-VERILOG_FILES: dir::../../rtl/*.sv
+VERILOG_FILES:
+  - dir::../../rtl/*.sv
+  - dir::../../macros/fsm/rtl/*.sv
 CLOCK_PORT: clk
 CLOCK_NET: clk
 CLOCK_PERIOD: 10 # 10ns = 100MHz
