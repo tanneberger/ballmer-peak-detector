@@ -305,8 +305,10 @@ if __name__ == "__main__":
     y_out = DS.y_out_k
 
     with open("uint8_tb_test_vec", "w") as g:
-        vec = "".join([str(y_out.T[k])[1] + ", " for k in range(n_inout)])
+        vec = "".join([str(int(round(y_out[0, k]))) + ", " for k in range(n_inout)])
         g.write(vec)
+
+    
 
     with open("uint8_tb_golden.txt", "w") as f:
         f.write("\n".join(GOLD) + "\n")
