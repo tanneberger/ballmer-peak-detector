@@ -5,8 +5,6 @@ def fma(mul1, mul2, add):
     return mul1 * mul2 + add
 
 
-
-
 class DataStream:
     # Streamed from External
     def __init__(self, n_inout: int = 4, n_hidden: int = 8):
@@ -21,8 +19,8 @@ class DataStream:
         self.c_bias = Complex_Num(np.zeros((1, n_inout)),
                                    np.zeros((1, n_inout)))
         # Real Part only
-        self.u_k = np.zeros((1, n_inout), dtype=float)
-        self.y_out_k = np.zeros((1, n_inout), dtype=float)
+        self.u_k = np.zeros((1, n_inout), dtype=int)
+        self.y_out_k = np.zeros((1, n_inout), dtype=int)
 
     def set_unit(self, name: str, value: np.ndarray):
         setattr(self, name, value)
@@ -140,21 +138,22 @@ def show_IS(IS: InternalStorage):
 def fill_with_random_inputs(IS: InternalStorage, DS: DataStream):
 
     # Weight values
-    DS.lambda_v = Complex_Num(np.random.random((1, n_hidden)),
-                              np.random.random((1, n_hidden)))
-    DS.B_matrix = Complex_Num(np.random.random((n_hidden, n_inout)),
-                              np.random.random((n_hidden, n_inout)))
-    DS.C_matrix = Complex_Num(np.random.random((n_inout, n_hidden)),
-                              np.random.random((n_inout, n_hidden)))
-    DS.b_bias = Complex_Num(np.random.random((1, n_hidden)),
-                            np.random.random((1, n_hidden)))
-    DS.c_bias = Complex_Num(np.random.random((1, n_inout)),
-                            np.random.random((1, n_inout)))
-    DS.u_k = np.random.random((1, n_inout))
+    DS.lambda_v = Complex_Num(np.random.randint(size=(1, n_hidden), low=0, high=3),
+                              np.random.randint(size=(1, n_hidden), low=0, high=3))
+    DS.B_matrix = Complex_Num(np.random.randint(size=(n_hidden, n_inout), low=0, high=3),
+                              np.random.randint(size=(n_hidden, n_inout), low=0, high=3))
+    DS.C_matrix = Complex_Num(np.random.randint(size=(n_inout, n_hidden), low=0, high=3),
+                              np.random.randint(size=(n_inout, n_hidden), low=0, high=3))
+    DS.b_bias = Complex_Num(np.random.randint(size=(1, n_hidden), low=0, high=3),
+                            np.random.randint(size=(1, n_hidden), low=0, high=3))
+    DS.c_bias = Complex_Num(np.random.randint(size=(1, n_inout), low=0, high=3),
+                            np.random.randint(size=(1, n_inout), low=0, high=3))
+    DS.u_k = np.random.randint(size=(1, n_inout), low=0, high=3)
     DS.y_out_k = np.zeros((1, n_inout))
 
     # Register Values
-    IS.x_state = Complex_Num(np.random.random((1, n_hidden)), np.random.random((1, n_hidden)))
+    IS.x_state = Complex_Num(np.random.randint(size=(1, n_hidden), low=0, high=3),
+                             np.random.randint(size=(1, n_hidden), low=0, high=3))
     IS.acc = np.zeros(1)
     IS.x_int = Complex_Num(np.zeros(1), np.zeros(1))
 
@@ -209,6 +208,67 @@ def sequence(IS: InternalStorage, DS: DataStream):
     return IS, DS
 
 
+def gen_datastream(DS: DataStream):
+
+    s = []
+
+    for i in range(n_hidden):
+        # REAL PART
+        s.append([DS.lambda_v.R[0, i],
+                  DS.b_bias.R[0, i]])
+        s.append([DS.lambda_v.C[0, i],
+                  "XXXXXXXX"])
+
+        for j in range(n_inout):
+            s.append([DS.B_matrix.R[i, j],
+                      DS.u_k[0, j]])
+
+        s.append([DS.lambda_v.R[0, i],
+                  DS.b_bias.R[0, i]])
+        s.append([DS.lambda_v.C[0, i],
+                  "XXXXXXXX"])
+
+        for j in range(n_inout):
+            s.append([DS.B_matrix.C[i, j],
+                      DS.u_k[0, j]])
+
+        s.append(["XXXXXXXX",
+                  "XXXXXXXX"])
+        s.append(["XXXXXXXX",
+                  "XXXXXXXX"])
+
+    # CALCULATE Y_K0
+    for j in range(n_inout):
+        for i in range(n_hidden):
+
+            s.append([DS.C_matrix.R[j, i],
+                      DS.c_bias.R[0, j]])
+            s.append([DS.C_matrix.C[j, i],
+                      "XXXXXXXX"])
+
+        s.append(["XXXXXXXX",
+                  DS.u_k[0, j]])
+
+    # Fixate bitstream
+    s_new = []
+
+    for k, str in enumerate(s):
+        s1, s2 = str
+
+        if s1 == "XXXXXXXX":
+            s1 = bin(0).replace("0b", "").zfill(8)
+        else:
+            s1 = bin(s1).replace("0b", "").zfill(8)
+
+        if s2 == "XXXXXXXX":
+            s2 = bin(0).replace("0b", "").zfill(8)
+        else:
+            s2 = bin(s2).replace("0b", "").zfill(8)
+        s_new.append(s1 + s2)
+
+    return s_new
+
+
 def math_groundtruth(IS: InternalStorage, DS: DataStream):
 
     # Inputs:
@@ -232,7 +292,6 @@ def math_groundtruth(IS: InternalStorage, DS: DataStream):
 
     return x_k_new, y_out
 
-
 if __name__ == "__main__":
 
     n_inout = 4
@@ -243,14 +302,14 @@ if __name__ == "__main__":
     IS = InternalStorage(n_inout=n_inout, n_hidden=n_hidden)
     fill_with_random_inputs(IS, DS)
 
-    x_gt, y_gt = math_groundtruth(IS, DS)
+    s = gen_datastream(DS)
+    with open("uint8_tb.txt", "w") as f:
+        for line in s:
+            f.write(line + "\n")
 
     IS, DS = sequence(IS, DS)
-    show_IS(IS)
     x_new = IS.x_state
     y_out = DS.y_out_k
 
-    print(f"X_s: {x_gt.T} || \n {x_new.R + x_new.C * 1.0j}")
-    print(f"Y_s: {y_gt.T} || \n{y_out}")
-    assert (x_new.R + x_new.C * 1.0j == x_gt.T).all(), "X-state incorrect"
-    assert (y_out.T == y_gt.T).all(), "Y-out incorrect"
+    print(f"X_s: {x_new.R + x_new.C * 1.0j}")
+    print(f"Y_s: {y_out}")

@@ -49,7 +49,7 @@ module heichips26_digital_project (
 
     wire in_ready = phase_q ? s_ready : 1'b1;
     wire in_beat  = in_valid && in_ready;
-
+    
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             op1_q   <= 8'h00;
@@ -85,7 +85,7 @@ module heichips26_digital_project (
         .clk        (clk),
         .rst_n      (rst_n)
     );
-
+    
     assign uo_out  = m_data;
     assign uio_out = {frame_done, m_last, m_mask, m_valid, in_ready, 3'b000};
     assign uio_oe  = 8'b1111_1000;
