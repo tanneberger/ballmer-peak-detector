@@ -20,9 +20,14 @@ VHDL_FILES:
 
 # 1. SYNTHESIS & AREA OPTIMIZATION
 PNR_SDC_FILE: "dir::constraints.sdc"
+# SIGNOFF_SDC_FILE: dir::signoff.sdc
+
 
 # Flächenorientierte ABC-Synthesestrategie 
-SYNTH_STRATEGY: "AREA 0"
+SYNTH_STRATEGY: "AREA 1"
+SYNTH_ABC_AREA_USE_NF: True
+SYNTH_ABC_DFF: True
+# SYNTH_ABC_STRATEGY_SCRIPT: "abc_script"
 
 # Gemeinsame Nutzung von Rechenressourcen 
 SYNTH_SHARE_RESOURCES: true
@@ -34,13 +39,12 @@ SYNTH_AUTONAME: false
 
 # Höhere Platzierungsdichte (0.65 - 0.75)
 PL_TARGET_DENSITY_PCT: 0.75
-
+FP_CORE_UTIL: 70
 
 # Wenn die Netlist nach der Flächenoptimierung kleiner ist,
 # kannst du DIE_AREA hier schrittweise verkleinern (z. B. von 350x350 auf 250x250):
-DIE_AREA: [0, 0, 140, 140]
-CORE_AREA: [10, 10, 130, 130]
-
+# DIE_AREA: [0, 0, 140, 140]
+CORE_AREA: [10, 10, 110, 110]
 # Pin Placement & Lagen
 FP_PIN_ORDER_CFG: dir::pins.cfg
 IO_PIN_H_LAYER: "Metal3"
