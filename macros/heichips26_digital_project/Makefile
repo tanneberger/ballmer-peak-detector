@@ -35,11 +35,11 @@ FINAL_DIR      	:= final
 # The fsm sub-macro RTL is needed for linting and RTL simulation of the whole
 # design; top.sv is the harness-independent core that the wrapper instantiates.
 MODULES_SYNTH := \
+	$(SRC_DIR)/fma.sv \
 	$(SRC_DIR)/heichips26_digital_project.sv \
 	$(SRC_DIR)/top.sv \
-	$(MACROS_DIR)/fsm/rtl/fsm.sv \
-	$(MACROS_DIR)/fsm/rtl/fma.sv \
-	$(MACROS_DIR)/fsm/rtl/shift_register.sv
+	$(SRC_DIR)/fsm.sv \
+	$(SRC_DIR)/shift_register.sv 
 
 MODULES_SIM := \
 	$(MODULES_SYNTH)
