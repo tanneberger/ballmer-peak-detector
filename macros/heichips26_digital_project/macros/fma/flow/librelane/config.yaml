@@ -1,6 +1,10 @@
 # Area-Optimized Configuration for FMA Macro
 # 
 
+# -script "+strash; &get -n; &fraig -x; &put; scorr; fraig; dc2; dretime; strash;
+#                &get -n; &dch -f; &nf -A 10 -F 20 {D} -a; &put; topo; buffer; upsize -R 20 -W 10 -v {D};
+#                dnsize {D};upsize {D};dnsize {D}; upsize {D};dnsize {D}; stime -p" 
+
 DESIGN_NAME: "fma"
 PDK: "ihp-sg13cmos5l"
 
